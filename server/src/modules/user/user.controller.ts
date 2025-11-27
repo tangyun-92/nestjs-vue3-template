@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Query } from "@nestjs/common";
-import type { QueryUserDto } from "./dto/query-user.dto";
+import type { QueryUserDto } from "./dto/user.dto";
 import { UserService } from "./user.service";
 import { ResponseWrapper } from "src/common/response.wrapper";
 
@@ -10,6 +10,11 @@ export class UserController {
   ) {
   }
 
+  /**
+   * 查询用户列表
+   * @param query 查询参数
+   * @returns 用户列表
+   */
   @Get()
   async findAll(@Query() query: QueryUserDto) {
     const result = await this.userService.findAll(query);

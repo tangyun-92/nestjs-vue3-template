@@ -7,3 +7,13 @@ export interface QueryUserDto {
   page?: number;
   pageSize?: number;
 }
+
+export interface UserDataBaseDto {
+  username?: string;
+  role?: UserRole;
+  status?: UserStatus;
+  id?: number;
+  created_dt?: Date;
+  updated_dt?: Date;
+  last_login_time?: Date;
+}

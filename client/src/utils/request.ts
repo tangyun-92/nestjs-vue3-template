@@ -41,7 +41,7 @@ service.interceptors.request.use(
     // 是否需要防止数据重复提交
     const isRepeatSubmit = config.headers?.repeatSubmit === false;
     // 是否需要加密
-    const isEncrypt = config.headers?.isEncrypt === 'true';
+    const isEncrypt = config.headers?.isEncrypt === 'false';
 
     if (getToken() && !isToken) {
       config.headers['Authorization'] = 'Bearer ' + getToken(); // 让每个请求携带自定义token 请根据实际情况自行修改
@@ -100,6 +100,7 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   (res: AxiosResponse) => {
+    console.log(res)
     if (import.meta.env.VITE_APP_ENCRYPT === 'true') {
       // 加密后的 AES 秘钥
       const keyStr = res.headers[encryptHeader];
@@ -119,7 +120,7 @@ service.interceptors.response.use(
     // 未设置状态码则默认成功状态
     const code = res.data.code || HttpStatus.SUCCESS;
     // 获取错误信息
-    const msg = errorCode[code] || res.data.msg || errorCode['default'];
+    const message = errorCode[code] || res.data.message || errorCode['default'];
     // 二进制数据则直接返回
     if (res.request.responseType === 'blob' || res.request.responseType === 'arraybuffer') {
       return res.data;
@@ -148,27 +149,31 @@ service.interceptors.response.use(
       }
       return Promise.reject('无效的会话，或者会话已过期，请重新登录。');
     } else if (code === HttpStatus.SERVER_ERROR) {
-      ElMessage({ message: msg, type: 'error' });
-      return Promise.reject(new Error(msg));
+      ElMessage({ message, type: 'error' });
+      return Promise.reject(new Error(message));
     } else if (code === HttpStatus.WARN) {
-      ElMessage({ message: msg, type: 'warning' });
-      return Promise.reject(new Error(msg));
+      ElMessage({ message, type: 'warning' });
+      return Promise.reject(new Error(message));
     } else if (code !== HttpStatus.SUCCESS) {
-      ElNotification.error({ title: msg });
+      ElNotification.error({ title: message });
       return Promise.reject('error');
     } else {
       return Promise.resolve(res.data);
     }
   },
   (error: any) => {
-    let { message } = error;
+    let { message, response } = error;
+    console.error(error, message)
     if (message == 'Network Error') {
       message = '后端接口连接异常';
     } else if (message.includes('timeout')) {
       message = '系统接口请求超时';
     } else if (message.includes('Request failed with status code')) {
-      message = '系统接口' + message.substr(message.length - 3) + '异常';
+      message = response.data.message;
     }
+    //  else if (message.includes('Request failed with status code')) {
+    //   message = '系统接口' + message.substr(message.length - 3) + '异常';
+    // }
     ElMessage({ message: message, type: 'error', duration: 5 * 1000 });
     return Promise.reject(error);
   }
@@ -194,7 +199,7 @@ export function download(url: string, params: any, fileName: string) {
         const blob = new Blob([resp]);
         const resText = await blob.text();
         const rspObj = JSON.parse(resText);
-        const errMsg = errorCode[rspObj.code] || rspObj.msg || errorCode['default'];
+        const errMsg = errorCode[rspObj.code] || rspObj.message || errorCode['default'];
         ElMessage.error(errMsg);
       }
       downloadLoadingInstance.close();

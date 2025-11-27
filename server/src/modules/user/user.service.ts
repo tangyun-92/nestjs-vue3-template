@@ -1,5 +1,5 @@
 import { User } from 'src/entities/user.entity';
-import { QueryUserDto } from './dto/query-user.dto';
+import { QueryUserDto } from './dto/user.dto';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -9,6 +9,11 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
+  /**
+   * 查询所有用户
+   * @param queryUserDto 查询参数
+   * @returns 用户列表
+   */
   async findAll(
     queryUserDto: QueryUserDto,
   ): Promise<{ users: User[]; total: number }> {
@@ -32,7 +37,7 @@ export class UserService {
 
     const total = await queryBuilder.getCount();
     const users = await queryBuilder
-      .orderBy('user.created_at', 'DESC')
+      .orderBy('user.created_dt', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize)
       .getMany();

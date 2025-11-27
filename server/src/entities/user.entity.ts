@@ -41,8 +41,8 @@ export class User {
   last_login_time: Date;
 
   @CreateDateColumn({ comment: '创建时间' })
-  created_at: Date;
+  created_dt: Date;
 
   @UpdateDateColumn({ comment: '更新时间' })
-  updated_at: Date;
+  updated_dt: Date;
 }
