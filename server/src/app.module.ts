@@ -1,4 +1,4 @@
-import { Module, OnModuleInit, ValidationPipe } from '@nestjs/common';
+import { MiddlewareConsumer, Module, OnModuleInit, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -11,6 +11,7 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { JwtModule } from '@nestjs/jwt';
+import { LoggerMiddleware } from './common/logger.middleware';
 
 @Module({
   imports: [
@@ -85,5 +86,12 @@ export class AppModule implements OnModuleInit {
 
   async onModuleInit() {
     await this.appService.initializeDatabase;
+  }
+
+  // 配置中间件
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*'); // 应用到所有路由
   }
 }
