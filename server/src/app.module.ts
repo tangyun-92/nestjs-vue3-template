@@ -10,6 +10,7 @@ import { User } from './entities/user.entity';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -36,6 +37,17 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
       inject: [ConfigService],
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      global: true,
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get('JWT_EXPIRES_IN', '24h'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
     AuthModule,
     UserModule,
     TypeOrmModule.forFeature([User]),
