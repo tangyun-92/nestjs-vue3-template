@@ -36,7 +36,7 @@ export class UserService {
 
     const total = await queryBuilder.getCount();
     const users = await queryBuilder
-      .orderBy('user.created_time', 'DESC')
+      .orderBy('user.create_time', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize)
       .getMany();
@@ -47,6 +47,11 @@ export class UserService {
     };
   }
 
+  /**
+   * 创建用户
+   * @param createUserDto 创建用户参数
+   * @returns 创建的用户信息
+   */
   async create(createUserDto: CreateUserDto): Promise<User> {
     const {
       user_name,
@@ -82,4 +87,5 @@ export class UserService {
 
     return this.userRepository.save(user);
   }
+
 }

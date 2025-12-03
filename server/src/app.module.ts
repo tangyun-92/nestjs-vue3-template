@@ -12,6 +12,7 @@ import { HttpExceptionFilter } from './common/http-exception.filter';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerMiddleware } from './common/logger.middleware';
+import { MenuModule } from './modules/menu/menu.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { LoggerMiddleware } from './common/logger.middleware';
     }),
     AuthModule,
     UserModule,
+    MenuModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],

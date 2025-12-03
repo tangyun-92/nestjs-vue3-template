@@ -39,7 +39,6 @@ export const useUserStore = defineStore('user', () => {
       const data = res.data;
       const user = data.user;
       const profile = user.avatar == '' || user.avatar == null ? defAva : user.avatar;
-
       if (data.roles && data.roles.length > 0) {
         // 验证返回的roles是否是一个非空数组
         roles.value = data.roles;

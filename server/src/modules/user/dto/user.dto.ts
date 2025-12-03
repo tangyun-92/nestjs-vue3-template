@@ -28,13 +28,13 @@ export interface UserDataBaseDto {
   email?: string;
   phonenumber?: string;
   sex?: string;
-  avatar?: string;
+  avatar?: number;
   password?: string;
-  status?: GlobalStatus;
-  del_flag?: GlobalStatus;
+  status?: string;
+  del_flag?: string;
   login_ip?: string;
   login_date?: Date;
   remark?: string;
-  created_time?: Date;
-  updated_time?: Date;
+  create_time?: Date;
+  update_time?: Date;
 }

@@ -1,8 +1,10 @@
-import { BadRequestException, Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import type { CreateUserDto, QueryUserDto, UserDataBaseDto } from "./dto/user.dto";
 import { UserService } from "./user.service";
 import { ResponseWrapper } from "src/common/response.wrapper";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
+@UseGuards(JwtAuthGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -29,7 +31,11 @@ export class UserController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    if (!createUserDto.user_name || !createUserDto.password || !createUserDto.nick_name) {
+    if (
+      !createUserDto.user_name ||
+      !createUserDto.password ||
+      !createUserDto.nick_name
+    ) {
       throw new BadRequestException('用户名、密码、昵称不能为空');
     }
 
@@ -37,4 +43,5 @@ export class UserController {
     const { password, ...userWithoutPassword } = user;
     return ResponseWrapper.success(userWithoutPassword, '创建用户成功');
   }
+
 }

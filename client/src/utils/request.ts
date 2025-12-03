@@ -163,7 +163,7 @@ service.interceptors.response.use(
   },
   (error: any) => {
     let { message, response } = error;
-    console.error(error, message)
+    console.error('123', error, message)
     if (message == 'Network Error') {
       message = '后端接口连接异常';
     } else if (message.includes('timeout')) {

@@ -10,7 +10,16 @@ import { map } from 'rxjs/operators';
 export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
+    const response = context.switchToHttp().getResponse();
     const { method, url } = request;
+
+    // 检查是否有认证错误
+    if ((response as any)._authError) {
+      return new Observable(observer => {
+        observer.next((response as any)._authError);
+        observer.complete();
+      });
+    }
 
     return next.handle().pipe(
       map(data => {

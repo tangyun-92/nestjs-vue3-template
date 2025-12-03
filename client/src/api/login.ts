@@ -96,7 +96,7 @@ export function callback(data: LoginData): AxiosPromise<any> {
 // 获取用户详细信息
 export function getInfo(): AxiosPromise<UserInfo> {
   return request({
-    url: '/system/user/getInfo',
+    url: '/auth/getInfo',
     method: 'get'
   });
 }

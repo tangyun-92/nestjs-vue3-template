@@ -33,10 +33,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     return {
-      id: user.user_id,
+      user_id: user.user_id,
       user_name: user.user_name,
       nick_name: user.nick_name,
       status: user.status,
+      remark: user.remark,
+      create_time: user.create_time,
+      update_time: user.update_time,
+      login_date: user.login_date,
+      login_ip: user.login_ip,
+      avatar: user.avatar,
+      sex: user.sex,
+      dept_id: user.dept_id,
+      user_type: user.user_type,
+      email: user.email,
+      phonenumber: user.phonenumber,
     };
   }
 }
