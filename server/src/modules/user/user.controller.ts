@@ -32,9 +32,9 @@ export class UserController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     if (
-      !createUserDto.user_name ||
+      !createUserDto.userName ||
       !createUserDto.password ||
-      !createUserDto.nick_name
+      !createUserDto.nickName
     ) {
       throw new BadRequestException('用户名、密码、昵称不能为空');
     }

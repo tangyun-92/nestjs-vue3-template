@@ -20,13 +20,13 @@ export class UserService {
   async findAll(
     queryUserDto: QueryUserDto,
   ): Promise<{ users: User[]; total: number }> {
-    const { user_name, status, page = 1, pageSize = 10 } = queryUserDto;
+    const { userName, status, page = 1, pageSize = 10 } = queryUserDto;
 
     const queryBuilder = this.userRepository.createQueryBuilder('user');
 
-    if (user_name) {
-      queryBuilder.andWhere('user.user_name LIKE :user_name', {
-        user_name: `%${user_name}%`,
+    if (userName) {
+      queryBuilder.andWhere('user.userName LIKE :userName', {
+        userName: `%${userName}%`,
       });
     }
 
@@ -36,7 +36,7 @@ export class UserService {
 
     const total = await queryBuilder.getCount();
     const users = await queryBuilder
-      .orderBy('user.create_time', 'DESC')
+      .orderBy('user.createTime', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize)
       .getMany();
@@ -54,9 +54,9 @@ export class UserService {
    */
   async create(createUserDto: CreateUserDto): Promise<User> {
     const {
-      user_name,
+      userName,
       password,
-      nick_name,
+      nickName,
       email,
       phonenumber,
       sex,
@@ -67,9 +67,9 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = this.userRepository.create({
-      user_name,
+      userName,
       password: hashedPassword,
-      nick_name: nick_name,
+      nickName: nickName,
       email: email,
       phonenumber: phonenumber,
       sex: sex,
@@ -79,7 +79,7 @@ export class UserService {
 
     // 查看数据库中用户名是否已存在
     const existingUser = await this.userRepository.findOne({
-      where: { user_name },
+      where: { userName },
     });
     if (existingUser) {
       throw new UnauthorizedException('用户名已存在');

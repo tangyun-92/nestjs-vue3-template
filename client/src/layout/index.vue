@@ -63,7 +63,7 @@ const settingRef = ref<InstanceType<typeof Settings>>();
 
 onMounted(() => {
   nextTick(() => {
-    navbarRef.value?.initTenantList();
+    // navbarRef.value?.initTenantList();
   });
 });
 

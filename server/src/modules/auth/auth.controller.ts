@@ -16,7 +16,7 @@ export class AuthController {
   @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(loginDto.user_name, loginDto.password);
+    const user = await this.authService.validateUser(loginDto.userName, loginDto.password);
 
     if (!user) {
       throw new UnauthorizedException('用户名或密码错误')

@@ -93,7 +93,7 @@ import { useAppStore } from '@/store/modules/app';
 import { useUserStore } from '@/store/modules/user';
 import { useSettingsStore } from '@/store/modules/settings';
 import { useNoticeStore } from '@/store/modules/notice';
-import { getTenantList } from '@/api/login';
+// import { getTenantList } from '@/api/login';
 import { dynamicClear, dynamicTenant } from '@/api/system/tenant';
 import { TenantVO } from '@/api/types';
 import notice from './notice/index.vue';
@@ -142,16 +142,16 @@ const dynamicClearEvent = async () => {
 };
 
 /** 租户列表 */
-const initTenantList = async () => {
-  const { data } = await getTenantList(true);
-  tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
-  if (tenantEnabled.value) {
-    tenantList.value = data.voList;
-  }
-};
+// const initTenantList = async () => {
+//   const { data } = await getTenantList(true);
+//   tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
+//   if (tenantEnabled.value) {
+//     tenantList.value = data.voList;
+//   }
+// };
 
 defineExpose({
-  initTenantList
+  // initTenantList
 });
 
 const toggleSideBar = () => {

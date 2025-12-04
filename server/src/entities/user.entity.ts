@@ -15,7 +15,7 @@ export enum UserSex {
 @Entity('sys_user')
 export class User {
   @PrimaryGeneratedColumn({ type: 'bigint' })
-  user_id: number;
+  userId: number;
 
   @Column({
     type: 'varchar',
@@ -23,16 +23,16 @@ export class User {
     default: '000000',
     comment: '租户编号',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @Column({ type: 'bigint', width: 20, nullable: true, comment: '部门ID' })
-  dept_id: number;
+  deptId: number;
 
   @Column({ type: 'varchar', length: 30, comment: '用户账号' })
-  user_name: string;
+  userName: string;
 
   @Column({ type: 'varchar', length: 30, comment: '用户昵称' })
-  nick_name: string;
+  nickName: string;
 
   @Column({
     type: 'varchar',
@@ -40,7 +40,7 @@ export class User {
     default: 'sys_user',
     comment: '用户类型（sys_user系统用户）',
   })
-  user_type: string;
+  userType: string;
 
   @Column({ type: 'varchar', length: 50, default: '', comment: '用户邮箱' })
   email: string;
@@ -76,28 +76,28 @@ export class User {
     default: '0',
     comment: '删除标志（0代表存在 1代表删除）',
   })
-  del_flag: string;
+  delFlag: string;
 
   @Column({ type: 'varchar', length: 128, default: '', comment: '最后登录IP' })
-  login_ip: string;
+  loginIp: string;
 
   @Column({ type: 'datetime', nullable: true, comment: '最后登录时间' })
-  login_date: Date;
+  loginDate: Date;
 
   @Column({ type: 'bigint', width: 20, nullable: true, comment: '创建部门' })
-  create_dept: number;
+  createDept: number;
 
   @Column({ type: 'bigint', width: 20, nullable: true, comment: '创建者' })
-  create_by: number;
+  createBy: number;
 
   @CreateDateColumn({ type: 'datetime', nullable: true, comment: '创建时间' })
-  create_time: Date;
+  createTime: Date;
 
   @Column({ type: 'bigint', width: 20, nullable: true, comment: '更新者' })
-  update_by: number;
+  updateBy: number;
 
   @UpdateDateColumn({ type: 'datetime', nullable: true, comment: '更新时间' })
-  update_time: Date;
+  updateTime: Date;
 
   @Column({ type: 'varchar', length: 500, nullable: true, comment: '备注' })
   remark: string;

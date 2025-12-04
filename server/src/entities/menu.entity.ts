@@ -9,16 +9,16 @@ import {
 @Entity('sys_menu')
 export class Menu {
   @PrimaryGeneratedColumn({ type: 'bigint' })
-  menu_id: number;
+  menuId: number;
 
   @Column({ type: 'varchar', length: 50, comment: '菜单名称' })
-  menu_name: string;
+  menuName: string;
 
   @Column({ type: 'bigint', width: 20, default: 0, comment: '父菜单ID' })
-  parent_id: number;
+  parentId: number;
 
   @Column({ type: 'int', width: 4, default: 0, comment: '显示顺序' })
-  order_num: number;
+  orderNum: number;
 
   @Column({ type: 'varchar', length: 200, default: '', comment: '路由地址' })
   path: string;
@@ -27,7 +27,7 @@ export class Menu {
   component: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true, comment: '路由参数' })
-  query_param: string;
+  queryParam: string;
 
   @Column({
     type: 'int',
@@ -35,7 +35,7 @@ export class Menu {
     default: 1,
     comment: '是否为外链（0是 1否）',
   })
-  is_frame: number;
+  isFrame: number;
 
   @Column({
     type: 'int',
@@ -43,7 +43,7 @@ export class Menu {
     default: 0,
     comment: '是否缓存（0缓存 1不缓存）',
   })
-  is_cache: number;
+  isCache: number;
 
   @Column({
     type: 'char',
@@ -51,7 +51,7 @@ export class Menu {
     default: '',
     comment: '菜单类型（M目录 C菜单 F按钮）',
   })
-  menu_type: string;
+  menuType: string;
 
   @Column({
     type: 'char',
@@ -76,19 +76,19 @@ export class Menu {
   icon: string;
 
   @Column({ type: 'bigint', width: 20, nullable: true, comment: '创建部门' })
-  create_dept: number;
+  createDept: number;
 
   @Column({ type: 'bigint', width: 20, nullable: true, comment: '创建者' })
-  create_by: number;
+  createBy: number;
 
   @CreateDateColumn({ type: 'datetime', nullable: true, comment: '创建时间' })
-  create_time: Date;
+  createTime: Date;
 
   @Column({ type: 'bigint', width: 20, nullable: true, comment: '更新者' })
-  update_by: number;
+  updateBy: number;
 
   @UpdateDateColumn({ type: 'datetime', nullable: true, comment: '更新时间' })
-  update_time: Date;
+  updateTime: Date;
 
   @Column({ type: 'varchar', length: 500, default: '', comment: '备注' })
   remark: string;

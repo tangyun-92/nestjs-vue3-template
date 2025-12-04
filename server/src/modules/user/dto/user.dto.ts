@@ -2,15 +2,15 @@ import { UserSex } from "src/entities/user.entity";
 import { GlobalStatus } from "src/types/global.types";
 
 export interface QueryUserDto {
-  user_name?: string;
+  userName?: string;
   status?: GlobalStatus;
   page?: number;
   pageSize?: number;
 }
 
 export interface CreateUserDto {
-  user_name: string;
-  nick_name: string;
+  userName: string;
+  nickName: string;
   password: string;
   phonenumber?: string;
   email?: string;
@@ -20,21 +20,21 @@ export interface CreateUserDto {
 }
 
 export interface UserDataBaseDto {
-  user_id?: number;
-  dept_id?: number;
-  user_name?: string;
-  nick_name?: string;
-  user_type?: string;
+  userId?: number;
+  deptId?: number;
+  userName?: string;
+  nickName?: string;
+  userType?: string;
   email?: string;
   phonenumber?: string;
   sex?: string;
   avatar?: number;
   password?: string;
   status?: string;
-  del_flag?: string;
-  login_ip?: string;
-  login_date?: Date;
+  delFlag?: string;
+  loginIp?: string;
+  loginDate?: Date;
   remark?: string;
-  create_time?: Date;
-  update_time?: Date;
+  createTime?: Date;
+  updateTime?: Date;
 }

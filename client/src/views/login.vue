@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { getCodeImg, getTenantList } from '@/api/login';
+import { getCodeImg } from '@/api/login';
 import { authBinding } from '@/api/system/social/auth';
 import { useUserStore } from '@/store/modules/user';
 import { LoginData, TenantVO } from '@/api/types';

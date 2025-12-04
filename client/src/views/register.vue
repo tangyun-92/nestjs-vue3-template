@@ -163,20 +163,20 @@ const getCode = async () => {
   }
 };
 
-const initTenantList = async () => {
-  const { data } = await getTenantList(false);
-  tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
-  if (tenantEnabled.value) {
-    tenantList.value = data.voList;
-    if (tenantList.value != null && tenantList.value.length !== 0) {
-      registerForm.value.tenantId = tenantList.value[0].tenantId;
-    }
-  }
-};
+// const initTenantList = async () => {
+//   const { data } = await getTenantList(false);
+//   tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
+//   if (tenantEnabled.value) {
+//     tenantList.value = data.voList;
+//     if (tenantList.value != null && tenantList.value.length !== 0) {
+//       registerForm.value.tenantId = tenantList.value[0].tenantId;
+//     }
+//   }
+// };
 
 onMounted(() => {
   getCode();
-  initTenantList();
+  // initTenantList();
 });
 </script>
 

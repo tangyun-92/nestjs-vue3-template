@@ -17,15 +17,15 @@ export class AuthService {
 
   /**
    * 验证用户
-   * @param user_name 用户名
+   * @param userName 用户名
    * @param password 密码
    * @returns 用户信息
    */
   async validateUser(
-    user_name: string,
+    userName: string,
     password: string,
   ): Promise<UserDataBaseDto | null> {
-    const user = await this.userRepository.findOne({ where: { user_name } });
+    const user = await this.userRepository.findOne({ where: { userName: userName } });
     if (!user) {
       return null;
     }
@@ -38,8 +38,8 @@ export class AuthService {
     // 验证密码
     if (await bcrypt.compare(password, user.password)) {
       // 更新最后登录时间
-      await this.userRepository.update(user.user_id, {
-        login_date: new Date(),
+      await this.userRepository.update(user.userId, {
+        loginDate: new Date(),
       });
 
       const { password, ...result } = user;
@@ -56,9 +56,9 @@ export class AuthService {
    */
   async login(user: UserDataBaseDto) {
     const payload = {
-      user_name: user.user_name,
-      sub: user.user_id,
-      nickName: user.nick_name,
+      userName: user.userName,
+      sub: user.userId,
+      nickName: user.nickName,
       status: user.status,
     };
 
@@ -67,11 +67,11 @@ export class AuthService {
     return {
       access_token,
       user: {
-        id: user.user_id,
-        user_name: user.user_name,
-        nick_name: user.nick_name,
+        id: user.userId,
+        userName: user.userName,
+        nickName: user.nickName,
         status: user.status,
-        login_date: user.login_date,
+        loginDate: user.loginDate,
       },
     };
   }
