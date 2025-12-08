@@ -15,6 +15,7 @@ import { LoggerMiddleware } from './common/logger.middleware';
 import { MenuModule } from './modules/menu/menu.module';
 import { DictModule } from './modules/dict/dict.module';
 import { ConfigModule } from './modules/config/config.module';
+import { RoleModule } from './modules/role/role.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ConfigModule } from './modules/config/config.module';
     MenuModule,
     DictModule,
     ConfigModule,
+    RoleModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
