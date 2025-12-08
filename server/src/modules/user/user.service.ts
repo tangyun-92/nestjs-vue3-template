@@ -5,11 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcryptjs';
 import { GlobalStatus } from 'src/types/global.types';
 import { UnauthorizedException } from '@nestjs/common';
+import { UserRoleService } from './user-role.service';
 
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private userRoleService: UserRoleService,
   ) {}
 
   /**

@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { RoleMenu } from './role-menu.entity';
 
 @Entity('sys_menu')
 export class Menu {
@@ -92,4 +94,8 @@ export class Menu {
 
   @Column({ type: 'varchar', length: 500, default: '', comment: '备注' })
   remark: string;
+
+  // 关联角色菜单
+  @OneToMany(() => RoleMenu, roleMenu => roleMenu.menu)
+  roleMenus: RoleMenu[];
 }

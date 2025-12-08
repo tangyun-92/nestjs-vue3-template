@@ -4,12 +4,14 @@ import { Repository, Like, Between, In } from 'typeorm';
 import { Role } from '../../entities/role.entity';
 import { QueryRoleDto, CreateRoleDto, UpdateRoleDto, DataScope } from './dto/role.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
+import { RoleMenuService } from './role-menu.service';
 
 @Injectable()
 export class RoleService {
   constructor(
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
+    private roleMenuService: RoleMenuService,
   ) {}
 
   /**

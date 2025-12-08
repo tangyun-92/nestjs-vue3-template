@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { UserRole } from './user-role.entity';
+import { RoleMenu } from './role-menu.entity';
 
 @Entity('sys_role')
 export class Role {
@@ -116,4 +118,12 @@ export class Role {
     comment: '备注',
   })
   remark: string;
+
+  // 关联用户角色
+  @OneToMany(() => UserRole, userRole => userRole.role)
+  userRoles: UserRole[];
+
+  // 关联角色菜单
+  @OneToMany(() => RoleMenu, roleMenu => roleMenu.role)
+  roleMenus: RoleMenu[];
 }

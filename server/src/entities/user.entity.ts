@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserRole } from './user-role.entity';
 
 export enum UserSex {
   MALE = '0',
@@ -101,4 +103,8 @@ export class User {
 
   @Column({ type: 'varchar', length: 500, nullable: true, comment: '备注' })
   remark: string;
+
+  // 关联用户角色
+  @OneToMany(() => UserRole, userRole => userRole.user)
+  userRoles: UserRole[];
 }
