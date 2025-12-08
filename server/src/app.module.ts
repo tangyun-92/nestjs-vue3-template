@@ -55,6 +55,7 @@ import { DictModule } from './modules/dict/dict.module';
     UserModule,
     MenuModule,
     DictModule,
+    ConfigModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
