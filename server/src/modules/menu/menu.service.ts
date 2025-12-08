@@ -175,6 +175,31 @@ export class MenuService {
 
     return {
       menus
-    }
+    };
+  }
+
+  /**
+   * 根据ID查找菜单
+   * @param menuId 菜单ID
+   * @returns 菜单信息
+   */
+  async findOne(menuId: number) {
+    return await this.menuRepository.findOne({
+      where: { menuId },
+    });
+  }
+
+  /**
+   * 获取子菜单
+   * @param parentId 父级菜单ID
+   * @returns 子菜单列表
+   */
+  async getChildren(parentId: number) {
+    return await this.menuRepository.find({
+      where: { parentId },
+      order: {
+        orderNum: 'ASC',
+      },
+    });
   }
 }

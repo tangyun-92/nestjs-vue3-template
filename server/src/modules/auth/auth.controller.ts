@@ -8,7 +8,9 @@ import { ResponseWrapper } from "src/common/response.wrapper";
 @UseGuards(JwtAuthGuard)
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+  ) {}
 
   @Public()
   @Post('login')
@@ -34,13 +36,10 @@ export class AuthController {
   @Get('getInfo')
   async getUserInfo(@Request() req) {
     const user = req.user;
-    user.roles = ['superadmin'];
-
-    return {
-      user,
-    };
+    return await this.authService.getUserInfo(user);
   }
 
+  
   @Get('check-token')
   async checkToken(
     @Request() req,
