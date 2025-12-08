@@ -13,6 +13,7 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerMiddleware } from './common/logger.middleware';
 import { MenuModule } from './modules/menu/menu.module';
+import { DictModule } from './modules/dict/dict.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { MenuModule } from './modules/menu/menu.module';
     AuthModule,
     UserModule,
     MenuModule,
+    DictModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],

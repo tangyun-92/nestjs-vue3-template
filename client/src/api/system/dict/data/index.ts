@@ -4,7 +4,7 @@ import { DictDataForm, DictDataQuery, DictDataVO } from './types';
 // 根据字典类型查询字典数据信息
 export function getDicts(dictType: string): AxiosPromise<DictDataVO[]> {
   return request({
-    url: '/system/dict/data/type/' + dictType,
+    url: '/dict/type/' + dictType,
     method: 'get'
   });
 }

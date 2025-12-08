@@ -54,12 +54,14 @@ export class ResponseWrapper {
     return {
       code: 200,
       result: true,
-      data: {
-        items,
-        total,
-        page,
-        pageSize,
-      },
+      rows: items,
+      total,
+      // data: {
+      //   items,
+      //   total,
+      //   page,
+      //   pageSize,
+      // },
       message,
     };
   }
