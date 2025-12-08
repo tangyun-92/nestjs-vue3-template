@@ -7,6 +7,10 @@ export interface QueryConfigDto {
   configType?: string;
   beginTime?: string;
   endTime?: string;
+  params?: {
+    beginTime?: string;
+    endTime?: string;
+  };
 }
 
 // 创建配置DTO

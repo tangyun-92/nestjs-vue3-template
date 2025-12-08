@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Between, In } from 'typeorm';
+import { Repository, Like, Between, In, LessThanOrEqual } from 'typeorm';
 import { Config } from '../../entities/config.entity';
 import { QueryConfigDto, CreateConfigDto, UpdateConfigDto } from './dto/config.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
@@ -18,7 +18,13 @@ export class ConfigService {
    * @returns 参数配置列表
    */
   async findAll(query: QueryConfigDto) {
-    const { pageNum = 1, pageSize = 10, configName, configKey, configType, beginTime, endTime } = query;
+    const {
+      pageNum = 1,
+      pageSize = 10,
+      configName,
+      configKey,
+      configType,
+    } = query;
 
     const where: any = {};
 
@@ -34,8 +40,13 @@ export class ConfigService {
       where.configType = configType;
     }
 
+    const beginTime = query['params[beginTime]'];
+    const endTime = query['params[endTime]'];
     if (beginTime && endTime) {
-      where.createTime = Between(new Date(beginTime), new Date(endTime));
+      where.createTime = Between(
+        new Date(beginTime),
+        new Date(endTime),
+      );
     }
 
     const [configs, total] = await this.configRepository.findAndCount({
@@ -123,7 +134,10 @@ export class ConfigService {
     }
 
     // 如果修改了参数键名，检查新的键名是否已存在
-    if (updateConfigDto.configKey && updateConfigDto.configKey !== existConfig.configKey) {
+    if (
+      updateConfigDto.configKey &&
+      updateConfigDto.configKey !== existConfig.configKey
+    ) {
       const keyExistConfig = await this.configRepository.findOne({
         where: { configKey: updateConfigDto.configKey },
       });
@@ -159,7 +173,7 @@ export class ConfigService {
       },
     });
 
-    const systemConfigs = configs.filter(config => config.configType === 'Y');
+    const systemConfigs = configs.filter((config) => config.configType === 'Y');
     if (systemConfigs.length > 0) {
       throw new Error('系统内置参数不能删除');
     }

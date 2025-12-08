@@ -69,20 +69,10 @@ export class Config {
   })
   updateBy: number;
 
-  @Column({
-    type: 'datetime',
-    nullable: true,
-    comment: '创建时间',
-  })
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime', nullable: true, comment: '创建时间' })
   createTime: Date;
 
-  @Column({
-    type: 'datetime',
-    nullable: true,
-    comment: '更新时间',
-  })
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime', nullable: true, comment: '更新时间' })
   updateTime: Date;
 
   @Column({

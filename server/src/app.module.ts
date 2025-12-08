@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, OnModuleInit, ValidationPipe } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config'
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,15 +14,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { LoggerMiddleware } from './common/logger.middleware';
 import { MenuModule } from './modules/menu/menu.module';
 import { DictModule } from './modules/dict/dict.module';
+import { ConfigModule } from './modules/config/config.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
+    NestConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [NestConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
         host: configService.get('DB_HOST'),

@@ -40,17 +40,6 @@ export class ConfigController {
   }
 
   /**
-   * 根据参数编号获取详细信息
-   * @param configId 参数ID
-   * @returns 参数详细信息
-   */
-  @Get(':configId')
-  async findOne(@Param('configId') configId: number) {
-    const config = await this.configService.findOne(+configId);
-    return ResponseWrapper.success(config, '查询成功');
-  }
-
-  /**
    * 根据参数键名查询参数值
    * @param configKey 参数键名
    * @returns 参数值
@@ -61,7 +50,18 @@ export class ConfigController {
     if (!configValue) {
       throw new Error('参数键名不存在');
     }
-    return ResponseWrapper.success({ configKey, configValue }, '查询成功');
+    return ResponseWrapper.success(configValue, '查询成功');
+  }
+
+  /**
+   * 根据参数编号获取详细信息
+   * @param configId 参数ID
+   * @returns 参数详细信息
+   */
+  @Get(':configId')
+  async findOne(@Param('configId') configId: number) {
+    const config = await this.configService.findOne(+configId);
+    return ResponseWrapper.success(config, '查询成功');
   }
 
   /**
