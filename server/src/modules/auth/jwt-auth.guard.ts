@@ -26,12 +26,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       const result = await super.canActivate(context);
       if (!result) {
         this.setUnauthorizedResponse(response);
-        return false;
+        throw new UnauthorizedException('Token验证失败');
       }
       return true;
     } catch (error) {
+      console.log('JWT Auth Error:', error); // 添加调试日志
       this.setUnauthorizedResponse(response);
-      return false;
+      throw new UnauthorizedException('Token无效或已过期');
     }
   }
 
@@ -49,8 +50,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         }
       }
 
-      // 不抛出异常，而是直接返回false，让canActivate方法处理
-      return false;
+      // 抛出异常，让canActivate方法的catch块处理
+      throw new UnauthorizedException(message);
     }
     return user;
   }

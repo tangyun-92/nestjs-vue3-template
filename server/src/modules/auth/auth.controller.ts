@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UnauthorizedException, UseGuards, Request } from "@nestjs/common";
+import { Body, Controller, Get, Post, UnauthorizedException, UseGuards, Request, Headers } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginDto, RegisterDto } from "./dto/auth.dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
@@ -38,6 +38,36 @@ export class AuthController {
     return {
       user
     };
+  }
+
+  @Get('check-token')
+  async checkToken(@Request() req, @Headers('authorization') authHeader: string) {
+    // 提取 token
+    const token = authHeader?.replace('Bearer ', '');
+
+    // 手动解码 JWT 来查看过期时间
+    const jwt = require('jsonwebtoken');
+    try {
+      const decoded = jwt.decode(token, { complete: true });
+      const now = Math.floor(Date.now() / 1000);
+      const isExpired = decoded.payload.exp < now;
+      const expirationDate = new Date(decoded.payload.exp * 1000);
+
+      return {
+        tokenInfo: {
+          issuedAt: new Date(decoded.payload.iat * 1000),
+          expiresAt: expirationDate,
+          isExpired: isExpired,
+          timeToExpiry: decoded.payload.exp - now,
+          payload: decoded.payload
+        }
+      };
+    } catch (error) {
+      return {
+        error: 'Invalid token',
+        message: error.message
+      };
+    }
   }
 
 }
