@@ -3,16 +3,31 @@ import { Menu } from "src/entities/menu.entity";
 import { Repository } from "typeorm";
 import { UserDataBaseDto } from "src/modules/user/dto/user.dto";
 import { QueryMenuDto } from "./dto/menu.dto";
+import { Inject, forwardRef, Injectable } from "@nestjs/common";
+import { User } from "src/entities/user.entity";
+import { UserRole } from "src/entities/user-role.entity";
+import { RoleMenu } from "src/entities/role-menu.entity";
+import { Role } from "src/entities/role.entity";
+import { In } from "typeorm";
 
 // 定义带有children的菜单类型
 interface MenuWithChildren extends Menu {
   children: MenuWithChildren[];
 }
 
+@Injectable()
 export class MenuService {
   constructor(
     @InjectRepository(Menu)
     private menuRepository: Repository<Menu>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(UserRole)
+    private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(RoleMenu)
+    private roleMenuRepository: Repository<RoleMenu>,
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
   ) {}
 
   /**
@@ -22,27 +37,80 @@ export class MenuService {
    */
   async getRouters(UserDataBaseDto: UserDataBaseDto) {
     const { userName } = UserDataBaseDto;
-    if (userName === 'admin') {
-      // 先不加条件查询所有菜单数据，看看数据库中有什么
-      const allMenus = await this.menuRepository.find();
+    console.log('getRouters', UserDataBaseDto);
 
-      // 再按条件查询
-      const menus = await this.menuRepository.find({
-        where: {
-          status: '0', // 正常状态
-          visible: '0', // 显示状态
-        },
-        order: {
-          parentId: 'ASC',
-          orderNum: 'ASC',
-        },
+    // 1. 查找用户ID
+    const user = await this.userRepository.findOne({
+      where: { userName },
+      select: ['userId']
+    });
+
+    if (!user) {
+      return [];
+    }
+
+    // 2. 查找用户的角色
+    const userRoles = await this.userRoleRepository.find({
+      where: { userId: user.userId },
+      select: ['roleId']
+    });
+
+    if (userRoles.length === 0) {
+      return [];
+    }
+
+    const roleIds = userRoles.map(ur => ur.roleId);
+
+    // 3. 查找用户的角色信息，判断是否有超级管理员角色
+    const roles = await this.roleRepository.find({
+      where: {
+        roleId: In(roleIds),
+        status: '0', // 正常状态
+        delFlag: '0', // 未删除
+      },
+      select: ['roleId', 'roleKey']
+    });
+
+    if (roles.length === 0) {
+      return [];
+    }
+
+    // 4. 判断是否是超级管理员
+    const isSuperAdmin = roles.some(role => role.roleKey === 'superadmin');
+
+    // 5. 根据是否是超级管理员决定查询条件
+    const menuQuery: any = {
+      where: {
+        status: '0', // 正常状态
+        visible: '0', // 显示状态
+      },
+      order: {
+        parentId: 'ASC',
+        orderNum: 'ASC',
+      },
+    };
+
+    // 如果不是超级管理员，添加菜单ID条件
+    if (!isSuperAdmin) {
+      // 查找角色对应的菜单ID
+      const roleMenus = await this.roleMenuRepository.find({
+        where: { roleId: In(roleIds) },
+        select: ['menuId']
       });
 
-      // 转换为路由格式
-      const routes = this.buildRoutes(menus);
-      return routes;
+      if (roleMenus.length === 0) {
+        return [];
+      }
+
+      const menuIds = [...new Set(roleMenus.map(rm => rm.menuId))];
+      menuQuery.where.menuId = In(menuIds);
     }
-    return [];
+
+    // 6. 查询菜单
+    const menus = await this.menuRepository.find(menuQuery);
+
+    // 7. 转换为路由格式
+    return this.buildRoutes(menus);
   }
 
   /**
