@@ -82,7 +82,7 @@ export class MenuService {
     const menuQuery: any = {
       where: {
         status: '0', // 正常状态
-        visible: '0', // 显示状态
+        // visible: '0', // 显示状态
       },
       order: {
         parentId: 'ASC',
