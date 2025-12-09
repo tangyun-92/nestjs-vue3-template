@@ -19,7 +19,6 @@ export class DictTypeController {
    */
   @Get('list')
   async list(@Query() query: any) {
-    console.log('hhhhhhhahahahh')
     const { dictTypes, total, pageNum, pageSize } = await this.dictTypeService.findAll(query);
     return ResponseWrapper.successWithPagination(
       dictTypes,

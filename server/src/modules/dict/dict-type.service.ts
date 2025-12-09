@@ -23,8 +23,6 @@ export class DictTypeService {
       dictType,
     } = query;
 
-    console.log('进来了');
-
     const where: any = {};
 
     if (dictName) {
@@ -49,6 +47,7 @@ export class DictTypeService {
     return {
       dictTypes: dictTypes.map(type => ({
         ...type,
+        dictId: +type.dictId,
         createTime: type.createTime?.toISOString(),
         updateTime: type.updateTime?.toISOString(),
       })),
@@ -74,6 +73,7 @@ export class DictTypeService {
 
     return {
       ...dictType,
+      dictId: +dictType.dictId,
       createTime: dictType.createTime?.toISOString(),
       updateTime: dictType.updateTime?.toISOString(),
     };
