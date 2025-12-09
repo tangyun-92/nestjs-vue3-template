@@ -17,6 +17,7 @@ import { DictModule } from './modules/dict/dict.module';
 import { ConfigModule } from './modules/config/config.module';
 import { RoleModule } from './modules/role/role.module';
 import { DeptModule } from './modules/dept/dept.module';
+import { PostModule } from './modules/post/post.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { DeptModule } from './modules/dept/dept.module';
     ConfigModule,
     RoleModule,
     DeptModule,
+    PostModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
