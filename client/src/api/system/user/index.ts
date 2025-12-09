@@ -11,7 +11,7 @@ import { parseStrEmpty } from '@/utils/ruoyi';
  */
 export const listUser = (query: UserQuery): AxiosPromise<UserVO[]> => {
   return request({
-    url: '/user',
+    url: '/system/user',
     method: 'get',
     params: query
   });

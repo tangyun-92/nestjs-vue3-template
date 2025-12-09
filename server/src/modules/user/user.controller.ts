@@ -5,7 +5,7 @@ import { ResponseWrapper } from "src/common/response.wrapper";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
 @UseGuards(JwtAuthGuard)
-@Controller('user')
+@Controller('system/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
