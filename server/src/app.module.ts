@@ -18,6 +18,7 @@ import { ConfigModule } from './modules/config/config.module';
 import { RoleModule } from './modules/role/role.module';
 import { DeptModule } from './modules/dept/dept.module';
 import { PostModule } from './modules/post/post.module';
+import { NoticeModule } from './modules/notice/notice.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { PostModule } from './modules/post/post.module';
     RoleModule,
     DeptModule,
     PostModule,
+    NoticeModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
