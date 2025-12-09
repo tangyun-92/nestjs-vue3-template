@@ -16,7 +16,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(
-      loginDto.userName,
+      loginDto.username,
       loginDto.password,
     );
 
@@ -24,7 +24,9 @@ export class AuthController {
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    return this.authService.login(user);
+    const result = this.authService.login(user);
+
+    return result;
   }
 
   @Public()

@@ -1,10 +1,10 @@
 
 export class LoginDto {
-  userName: string;
+  username: string;
   password: string;
 }
 
 export class RegisterDto {
-  userName: string;
+  username: string;
   password: string;
 }
