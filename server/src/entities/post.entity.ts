@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { UserPost } from './user-post.entity';
 
 @Entity('sys_post')
 export class Post {
@@ -99,4 +100,8 @@ export class Post {
     comment: '备注',
   })
   remark: string;
+
+  // 关联用户岗位
+  @OneToMany(() => UserPost, userPost => userPost.post)
+  userPosts: UserPost[];
 }

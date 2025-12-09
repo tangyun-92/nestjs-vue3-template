@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserRole } from './user-role.entity';
+import { UserPost } from './user-post.entity';
 
 export enum UserSex {
   MALE = '0',
@@ -107,4 +108,8 @@ export class User {
   // 关联用户角色
   @OneToMany(() => UserRole, userRole => userRole.user)
   userRoles: UserRole[];
+
+  // 关联用户岗位
+  @OneToMany(() => UserPost, userPost => userPost.user)
+  userPosts: UserPost[];
 }
