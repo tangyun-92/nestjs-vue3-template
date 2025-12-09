@@ -12,7 +12,7 @@ import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DictData, DictType]), AuthModule],
-  controllers: [DictController, DictTypeController, DictDataController],
+  controllers: [DictTypeController, DictDataController, DictController],
   providers: [DictService, DictTypeService, DictDataService],
   exports: [DictService, DictTypeService, DictDataService],
 })

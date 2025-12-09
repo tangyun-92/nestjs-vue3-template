@@ -12,7 +12,7 @@ export class DictController {
     private readonly dictDataService: DictDataService,
   ) {}
 
-  @Get('type/:dictType')
+  @Get('dictType/:dictType')
   async getDictDataByType(@Param('dictType') dictType: string) {
     const data = await this.dictService.getDictDataByType(dictType);
     return ResponseWrapper.success(data, '操作成功');

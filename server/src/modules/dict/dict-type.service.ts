@@ -23,6 +23,8 @@ export class DictTypeService {
       dictType,
     } = query;
 
+    console.log('进来了');
+
     const where: any = {};
 
     if (dictName) {
@@ -41,6 +43,8 @@ export class DictTypeService {
       skip: (pageNum - 1) * pageSize,
       take: pageSize,
     });
+
+    console.log(dictTypes);
 
     return {
       dictTypes: dictTypes.map(type => ({
