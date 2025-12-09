@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User } from '../../entities/user.entity';
@@ -42,7 +42,7 @@ export class UserRoleService {
     });
 
     if (!user) {
-      throw new Error('用户不存在');
+      throw new UnauthorizedException('用户不存在');
     }
 
     // 检查所有角色是否存在
@@ -56,7 +56,7 @@ export class UserRoleService {
       });
 
       if (roles.length !== roleIds.length) {
-        throw new Error('部分角色不存在或已停用');
+        throw new UnauthorizedException('部分角色不存在或已停用');
       }
     }
 
@@ -106,7 +106,7 @@ export class UserRoleService {
     });
 
     if (!role) {
-      throw new Error('角色不存在或已停用');
+      throw new UnauthorizedException('角色不存在或已停用');
     }
 
     // 检查所有用户是否存在
@@ -119,7 +119,7 @@ export class UserRoleService {
     });
 
     if (users.length !== userIds.length) {
-      throw new Error('部分用户不存在或已停用');
+      throw new UnauthorizedException('部分用户不存在或已停用');
     }
 
     // 为每个用户创建角色关联（忽略已存在的）
@@ -151,7 +151,7 @@ export class UserRoleService {
     });
 
     if (result.affected === 0) {
-      throw new Error('用户角色关系不存在');
+      throw new UnauthorizedException('用户角色关系不存在');
     }
 
     return { success: true };

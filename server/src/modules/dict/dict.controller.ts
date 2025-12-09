@@ -4,7 +4,7 @@ import { DictService } from './dict.service';
 import { ResponseWrapper } from 'src/common/response.wrapper';
 
 @UseGuards(JwtAuthGuard)
-@Controller('dict')
+@Controller('system/dict')
 export class DictController {
   constructor(private readonly dictService: DictService) {}
 

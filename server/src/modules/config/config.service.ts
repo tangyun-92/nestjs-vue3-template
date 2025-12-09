@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between, In, LessThanOrEqual } from 'typeorm';
 import { Config } from '../../entities/config.entity';
@@ -85,7 +85,7 @@ export class ConfigService {
     });
 
     if (!config) {
-      throw new Error('参数配置不存在');
+      throw new UnauthorizedException('参数配置不存在');
     }
 
     return config;
@@ -103,7 +103,7 @@ export class ConfigService {
     });
 
     if (existConfig) {
-      throw new Error('参数键名已存在');
+      throw new UnauthorizedException('参数键名已存在');
     }
 
     const config = this.configRepository.create({
@@ -130,7 +130,7 @@ export class ConfigService {
     });
 
     if (!existConfig) {
-      throw new Error('参数配置不存在');
+      throw new UnauthorizedException('参数配置不存在');
     }
 
     // 如果修改了参数键名，检查新的键名是否已存在
@@ -143,7 +143,7 @@ export class ConfigService {
       });
 
       if (keyExistConfig) {
-        throw new Error('参数键名已存在');
+        throw new UnauthorizedException('参数键名已存在');
       }
     }
 
@@ -175,14 +175,14 @@ export class ConfigService {
 
     const systemConfigs = configs.filter((config) => config.configType === 'Y');
     if (systemConfigs.length > 0) {
-      throw new Error('系统内置参数不能删除');
+      throw new UnauthorizedException('系统内置参数不能删除');
     }
 
     // 执行删除
     const result = await this.configRepository.delete(ids);
 
     if (result.affected === 0) {
-      throw new Error('删除失败，参数不存在');
+      throw new UnauthorizedException('删除失败，参数不存在');
     }
   }
 

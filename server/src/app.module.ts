@@ -16,6 +16,7 @@ import { MenuModule } from './modules/menu/menu.module';
 import { DictModule } from './modules/dict/dict.module';
 import { ConfigModule } from './modules/config/config.module';
 import { RoleModule } from './modules/role/role.module';
+import { DeptModule } from './modules/dept/dept.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { RoleModule } from './modules/role/role.module';
     DictModule,
     ConfigModule,
     RoleModule,
+    DeptModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between, In } from 'typeorm';
 import { Role } from '../../entities/role.entity';
@@ -94,7 +94,7 @@ export class RoleService {
     });
 
     if (!role) {
-      throw new Error('角色不存在');
+      throw new UnauthorizedException('角色不存在');
     }
 
     return role;
@@ -115,7 +115,7 @@ export class RoleService {
     });
 
     if (existRole) {
-      throw new Error('角色名称已存在');
+      throw new UnauthorizedException('角色名称已存在');
     }
 
     // 检查角色权限字符串是否已存在
@@ -127,7 +127,7 @@ export class RoleService {
     });
 
     if (existKeyRole) {
-      throw new Error('角色权限字符串已存在');
+      throw new UnauthorizedException('角色权限字符串已存在');
     }
 
     const role = this.roleRepository.create({
@@ -156,7 +156,7 @@ export class RoleService {
     });
 
     if (!existRole) {
-      throw new Error('角色不存在');
+      throw new UnauthorizedException('角色不存在');
     }
 
     // 检查角色名称是否已被其他角色使用
@@ -170,7 +170,7 @@ export class RoleService {
       });
 
       if (nameExistRole && nameExistRole.roleId !== roleId) {
-        throw new Error('角色名称已存在');
+        throw new UnauthorizedException('角色名称已存在');
       }
     }
 
@@ -185,7 +185,7 @@ export class RoleService {
       });
 
       if (keyExistRole && keyExistRole.roleId !== roleId) {
-        throw new Error('角色权限字符串已存在');
+        throw new UnauthorizedException('角色权限字符串已存在');
       }
     }
 
@@ -216,7 +216,7 @@ export class RoleService {
     });
 
     if (roles.length === 0) {
-      throw new Error('角色不存在');
+      throw new UnauthorizedException('角色不存在');
     }
 
     // TODO: 检查角色是否已分配给用户
@@ -242,7 +242,7 @@ export class RoleService {
     });
 
     if (!role) {
-      throw new Error('角色不存在');
+      throw new UnauthorizedException('角色不存在');
     }
 
     await this.roleRepository.update(roleId, { status });
@@ -261,7 +261,7 @@ export class RoleService {
     });
 
     if (!role) {
-      throw new Error('角色不存在');
+      throw new UnauthorizedException('角色不存在');
     }
 
     // TODO: 保存角色与部门的关联关系

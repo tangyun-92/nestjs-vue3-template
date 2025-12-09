@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from './config.service';
 import type { QueryConfigDto, CreateConfigDto, UpdateConfigDto } from './dto/config.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
@@ -48,7 +48,7 @@ export class ConfigController {
   async getConfigByKey(@Param('configKey') configKey: string) {
     const configValue = await this.configService.getConfigByKey(configKey);
     if (!configValue) {
-      throw new Error('参数键名不存在');
+      throw new UnauthorizedException('参数键名不存在');
     }
     return ResponseWrapper.success(configValue, '查询成功');
   }

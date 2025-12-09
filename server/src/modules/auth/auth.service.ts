@@ -38,7 +38,7 @@ export class AuthService {
 
     // 检查用户状态
     if (user.status !== GlobalStatus.ACTIVE) {
-      throw new Error('用户被禁用');
+      throw new UnauthorizedException('用户被禁用');
     }
 
     // 验证密码

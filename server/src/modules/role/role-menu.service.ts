@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Role } from '../../entities/role.entity';
@@ -63,7 +63,7 @@ export class RoleMenuService {
     });
 
     if (!role) {
-      throw new Error('角色不存在');
+      throw new UnauthorizedException('角色不存在');
     }
 
     // 检查所有菜单是否存在
@@ -76,7 +76,7 @@ export class RoleMenuService {
       });
 
       if (menus.length !== menuIds.length) {
-        throw new Error('部分菜单不存在或已停用');
+        throw new UnauthorizedException('部分菜单不存在或已停用');
       }
 
       // 获取所有菜单的父级菜单ID
@@ -150,7 +150,7 @@ export class RoleMenuService {
     });
 
     if (!menu) {
-      throw new Error('菜单不存在或已停用');
+      throw new UnauthorizedException('菜单不存在或已停用');
     }
 
     // 为每个角色创建菜单关联（忽略已存在的）
@@ -182,7 +182,7 @@ export class RoleMenuService {
     });
 
     if (result.affected === 0) {
-      throw new Error('角色菜单关系不存在');
+      throw new UnauthorizedException('角色菜单关系不存在');
     }
 
     return { success: true };
