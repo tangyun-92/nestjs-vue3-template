@@ -29,16 +29,31 @@ export interface CreateUserDto {
 
 export interface UpdateUserDto {
   userId: number;
+  deptId?: number | string;
   userName?: string;
   nickName?: string;
+  password?: string;
   phonenumber?: string;
   email?: string;
-  sex?: UserSex;
-  status?: GlobalStatus;
+  sex?: string | number;
+  status?: string;
   remark?: string;
-  deptId?: number;
-  postIds?: number[];
-  roleIds?: number[];
+  postIds?: (string | number)[] | null;
+  roleIds?: (string | number)[] | null;
+  tenantId?: string;
+  userType?: string;
+  avatar?: any;
+  delFlag?: string;
+  loginIp?: string;
+  loginDate?: string;
+  createDept?: any;
+  createBy?: any;
+  createTime?: string;
+  updateBy?: any;
+  updateTime?: string;
+  deptName?: string;
+  roles?: any[];
+  roleId?: string | number;
 }
 
 export interface UserDataBaseDto {

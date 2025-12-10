@@ -205,30 +205,63 @@ export class UserService {
       }
     }
 
-    // 更新用户信息
-    Object.assign(user, updateUserDto);
-    const updatedUser = await this.userRepository.save(user);
+    // 准备更新数据，只包含需要更新的字段
+    const updateData: any = {};
+
+    // 基本信息
+    if (updateUserDto.deptId !== undefined) {
+      updateData.deptId = typeof updateUserDto.deptId === 'string' ? parseInt(updateUserDto.deptId) : updateUserDto.deptId;
+    }
+    if (updateUserDto.userName !== undefined) updateData.userName = updateUserDto.userName;
+    if (updateUserDto.nickName !== undefined) updateData.nickName = updateUserDto.nickName;
+    if (updateUserDto.phonenumber !== undefined) updateData.phonenumber = updateUserDto.phonenumber;
+    if (updateUserDto.email !== undefined) updateData.email = updateUserDto.email;
+    if (updateUserDto.sex !== undefined) updateData.sex = typeof updateUserDto.sex === 'string' ? updateUserDto.sex : updateUserDto.sex.toString();
+    if (updateUserDto.status !== undefined) updateData.status = updateUserDto.status;
+    if (updateUserDto.remark !== undefined) updateData.remark = updateUserDto.remark;
+    if (updateUserDto.avatar !== undefined) updateData.avatar = updateUserDto.avatar;
+
+    // 如果有密码且不为空，则更新密码
+    if (updateUserDto.password && updateUserDto.password.trim() !== '') {
+      updateData.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    // 更新用户基本信息
+    await this.userRepository.update(updateUserDto.userId, updateData);
 
     // 更新角色关联
-    if (updateUserDto.roleIds) {
-      await this.userRoleService.updateUserRoles(
-        updateUserDto.userId,
-        updateUserDto.roleIds
-      );
+    if (updateUserDto.roleIds !== undefined && updateUserDto.roleIds !== null) {
+      const roleIds = updateUserDto.roleIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id));
+      await this.userRoleService.updateUserRoles(updateUserDto.userId, roleIds);
     }
 
     // 更新岗位关联
-    if (updateUserDto.postIds) {
-      await this.userPostService.updateUserPosts(
-        updateUserDto.userId,
-        updateUserDto.postIds
-      );
+    if (updateUserDto.postIds !== undefined && updateUserDto.postIds !== null) {
+      const postIds = updateUserDto.postIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id));
+      await this.userPostService.updateUserPosts(updateUserDto.userId, postIds);
+    }
+
+    // 获取更新后的用户信息
+    const updatedUser = await this.userRepository.findOne({
+      where: { userId: updateUserDto.userId },
+    });
+
+    if (!updatedUser) {
+      throw new UnauthorizedException('更新失败，用户不存在');
+    }
+
+    // 获取部门信息
+    let deptName: string | undefined = undefined;
+    if (updatedUser.deptId) {
+      const dept = await this.deptService.findOne(updatedUser.deptId);
+      deptName = dept.deptName;
     }
 
     return {
       ...updatedUser,
       createTime: updatedUser.createTime?.toISOString(),
       updateTime: updatedUser.updateTime?.toISOString(),
+      deptName,
     };
   }
 
