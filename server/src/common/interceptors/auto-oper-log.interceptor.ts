@@ -102,6 +102,12 @@ export class AutoOperLogInterceptor implements NestInterceptor {
    */
   private shouldExclude(req: Request): boolean {
     const path = req.path;
+    const method = req.method;
+
+    // 排除所有GET请求（查询操作）
+    if (method === 'GET') {
+      return true;
+    }
 
     // 检查排除列表
     for (const excludePath of this.excludedPaths) {
