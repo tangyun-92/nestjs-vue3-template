@@ -241,15 +241,20 @@ export class MenuService {
       where,
       order: {
         orderNum: 'ASC',
-        menuId: 'ASC'
-      }
+        menuId: 'ASC',
+      },
     });
+
+    // menuName存在时，不需要返回树结构
+    if (menuName) {
+      return { menus }
+    }
 
     // 构建树形结构
     const menuTree = this.buildMenuTree(menus);
 
     return {
-      menus: menuTree
+      menus: menuTree,
     };
   }
 
