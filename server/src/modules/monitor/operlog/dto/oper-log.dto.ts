@@ -45,6 +45,7 @@ export enum BusinessType {
   FORCE = 7,     // 强退
   GENCODE = 8,   // 生成代码
   CLEAN = 9,     // 清空数据
+  SELECT = 10,   // 查询
 }
 
 // 操作类别枚举

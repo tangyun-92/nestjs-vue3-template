@@ -7,11 +7,14 @@ import { PassportModule } from '@nestjs/passport'
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { User } from './entities/user.entity';
+import { OperLog } from './entities/oper-log.entity';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerMiddleware } from './common/logger.middleware';
+import { OperLogMiddlewareService } from './common/services/oper-log.service';
+import { OperLogInterceptor } from './common/interceptors/oper-log.interceptor';
 import { MenuModule } from './modules/menu/menu.module';
 import { DictModule } from './modules/dict/dict.module';
 import { ConfigModule } from './modules/config/config.module';
@@ -69,7 +72,7 @@ import { LoginInfoModule } from './modules/monitor/loginlog/login-log.module';
     NoticeModule,
     OperLogModule,
     LoginInfoModule,
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, OperLog]),
   ],
   controllers: [AppController],
   providers: [
@@ -96,6 +99,13 @@ import { LoginInfoModule } from './modules/monitor/loginlog/login-log.module';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    // 操作日志中间件服务
+    OperLogMiddlewareService,
+    // 操作日志拦截器
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: OperLogInterceptor,
     },
   ],
 })

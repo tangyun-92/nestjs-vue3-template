@@ -3,6 +3,7 @@ import type { CreateUserDto, QueryUserDto, UserDataBaseDto } from "./dto/user.dt
 import { UserService } from "./user.service";
 import { ResponseWrapper } from "src/common/response.wrapper";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { OperLog, LogInsert, LogUpdate, LogDelete, LogSelect } from "src/common/decorators/oper-log.decorator";
 
 @UseGuards(JwtAuthGuard)
 @Controller('system/user')
@@ -15,6 +16,7 @@ export class UserController {
    * @returns 用户列表
    */
   @Get()
+  @LogSelect('查询用户列表')
   async findAll(@Query() query: QueryUserDto) {
     const result = await this.userService.findAll(query);
     return ResponseWrapper.successWithPagination(
@@ -30,6 +32,7 @@ export class UserController {
   }
 
   @Post()
+  @LogInsert('创建用户')
   async create(@Body() createUserDto: CreateUserDto) {
     if (
       !createUserDto.userName ||
