@@ -307,16 +307,16 @@ export class MenuService {
     // 转换数据类型以匹配实体
     const createData: any = { ...createMenuDto };
     if (createMenuDto.isFrame !== undefined) {
-      createData.isFrame = createMenuDto.isFrame === '1' ? 1 : 0;
+      createData.isFrame = +createMenuDto.isFrame;
     }
     if (createMenuDto.isCache !== undefined) {
-      createData.isCache = createMenuDto.isCache === '1' ? 1 : 0;
+      createData.isCache = +createMenuDto.isCache;
     }
     if (createMenuDto.visible !== undefined) {
-      createData.visible = createMenuDto.visible === '0' ? '0' : '1';
+      createData.visible = +createMenuDto.visible;
     }
     if (createMenuDto.status !== undefined) {
-      createData.status = createMenuDto.status === '0' ? '0' : '1';
+      createData.status = +createMenuDto.status;
     }
 
     const menu = this.menuRepository.create(createData);
@@ -364,16 +364,16 @@ export class MenuService {
     // 转换数据类型以匹配实体
     const updateData: any = { ...updateMenuDto };
     if (updateMenuDto.isFrame !== undefined) {
-      updateData.isFrame = updateMenuDto.isFrame === '1' ? 1 : 0;
+      updateData.isFrame = +updateMenuDto.isFrame;
     }
     if (updateMenuDto.isCache !== undefined) {
-      updateData.isCache = updateMenuDto.isCache === '1' ? 1 : 0;
+      updateData.isCache = +updateMenuDto.isCache;
     }
     if (updateMenuDto.visible !== undefined) {
-      updateData.visible = updateMenuDto.visible === '0' ? '0' : '1';
+      updateData.visible = +updateMenuDto.visible;
     }
     if (updateMenuDto.status !== undefined) {
-      updateData.status = updateMenuDto.status === '0' ? '0' : '1';
+      updateData.status = +updateMenuDto.status;
     }
 
     await this.menuRepository.update(updateMenuDto.menuId, updateData);

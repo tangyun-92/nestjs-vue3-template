@@ -56,7 +56,14 @@ export class MenuController {
   @Get(':menuId')
   async getMenu(@Param('menuId') menuId: number) {
     const menu = await this.menuService.findOne(+menuId);
-    return ResponseWrapper.success(menu, '查询成功');
+    if (!menu) {
+      return ResponseWrapper.error('菜单不存在');
+    }
+    return ResponseWrapper.success({
+      ...menu,
+      isCache: String(menu.isCache),
+      isFrame: String(menu.isFrame),
+    }, '查询成功');
   }
 
   /**
