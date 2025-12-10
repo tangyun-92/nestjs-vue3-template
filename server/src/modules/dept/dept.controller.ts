@@ -31,15 +31,14 @@ export class DeptController {
   }
 
   /**
-   * 通过部门ID查询部门选项
+   * 通过部门ID查询岗位选项
    * @param query 查询参数
-   * @returns 部门选项列表
+   * @returns 岗位选项列表
    */
   @Get('optionselect')
-  async optionSelect(@Query('deptIds') deptIds: string) {
-    const ids = deptIds ? deptIds.split(',').map(id => +id) : [];
-    const depts = await this.deptService.findOptionsByIds(ids);
-    return ResponseWrapper.success(depts, '查询成功');
+  async optionSelect(@Query('deptId') deptId: string) {
+    const posts = await this.deptService.findOptionsById(+deptId);
+    return ResponseWrapper.success(posts, '查询成功');
   }
 
   /**

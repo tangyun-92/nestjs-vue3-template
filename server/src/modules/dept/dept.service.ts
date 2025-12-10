@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Not, In } from 'typeorm';
 import { Dept } from '../../entities/dept.entity';
+import { Post } from '../../entities/post.entity';
 import {
   QueryDeptDto,
   CreateDeptDto,
@@ -9,6 +10,7 @@ import {
   DeptDataDto,
   DeptTreeDto,
   DeptOptionDto,
+  PostOptionDto,
   DeptStatus,
   DelFlag
 } from './dto/dept.dto';
@@ -18,6 +20,8 @@ export class DeptService {
   constructor(
     @InjectRepository(Dept)
     private deptRepository: Repository<Dept>,
+    @InjectRepository(Post)
+    private postRepository: Repository<Post>,
   ) {}
 
   /**
@@ -72,11 +76,11 @@ export class DeptService {
         return +parentId === +dept.parentId;
       })
       .map(dept => ({
-        id: dept.deptId,
-        parentId: dept.parentId === null ? 0 : dept.parentId,
+        id: +dept.deptId,
+        parentId: dept.parentId === null ? 0 : +dept.parentId,
         label: dept.deptName,
         weight: dept.orderNum,
-        disabled: dept.status === DeptStatus.NORMAL,
+        disabled: dept.status === DeptStatus.DISABLED,
         children: this.buildDeptTreeSelect(depts, dept.deptId)
       }));
   }
@@ -389,25 +393,51 @@ export class DeptService {
   }
 
   /**
-   * 根据部门ID列表查询部门选项
-   * @param deptIds 部门ID数组
-   * @returns 部门选项列表
+   * 根据部门ID查询岗位选项（返回该部门及其所有子部门下的所有岗位）
+   * @param deptId 部门ID
+   * @returns 岗位选项列表
    */
-  async findOptionsByIds(deptIds: number[]): Promise<DeptOptionDto[]> {
+  async findOptionsById(deptId: number): Promise<PostOptionDto[]> {
+    // 获取该部门及其所有子部门
+    const childDepts = await this.findChildDepts(deptId);
+    const allDeptIds = [deptId, ...childDepts.map(d => d.deptId)];
+
+    // 获取所有相关的部门信息
     const depts = await this.deptRepository.find({
       where: {
-        deptId: In(deptIds),
+        deptId: In(allDeptIds),
         delFlag: DelFlag.EXISTS
-      },
-      order: {
-        orderNum: 'ASC'
       }
     });
 
-    return depts.map(dept => ({
-      deptId: dept.deptId,
-      deptName: dept.deptName,
-      parentId: dept.parentId
+    // 创建部门ID到部门名称的映射
+    const deptMap = new Map<number, string>();
+    depts.forEach(dept => {
+      deptMap.set(dept.deptId, dept.deptName);
+    });
+
+    // 查询这些部门下的所有岗位
+    const posts = await this.postRepository.find({
+      where: {
+        deptId: In(allDeptIds)
+      },
+      order: {
+        postSort: 'ASC'
+      }
+    });
+
+    // 转换为响应格式
+    return posts.map(post => ({
+      postId: post.postId,
+      deptId: post.deptId,
+      postCode: post.postCode,
+      postName: post.postName,
+      postCategory: post.postCategory,
+      postSort: post.postSort,
+      status: post.status,
+      remark: post.remark || '',
+      createTime: post.createTime?.toISOString() || '',
+      deptName: deptMap.get(post.deptId) || ''
     }));
   }
 

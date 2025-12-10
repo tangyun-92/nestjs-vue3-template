@@ -55,13 +55,24 @@ export class UserController {
   }
 
   /**
+   * 获取所有角色
+   * @returns 角色详情
+   */
+  @Get('role/allRoleList')
+  async allRoleList() {
+    console.log('方法执行了啊')
+    const roles = await this.userService.findAllRoleList();
+    return ResponseWrapper.success(roles, '获取角色列表成功');
+  }
+
+  /**
    * 获取用户选项列表
    * @param userIds 用户ID列表
    * @returns 用户列表
    */
   @Get('optionselect')
   async optionSelect(@Query('userIds') userIds: string) {
-    const ids = userIds ? userIds.split(',').map(id => +id) : [];
+    const ids = userIds ? userIds.split(',').map((id) => +id) : [];
     const users = await this.userService.findOptionsByIds(ids);
     return ResponseWrapper.success(users, '查询成功');
   }
@@ -82,7 +93,7 @@ export class UserController {
     const { password, ...userWithoutPassword } = userData.user;
     const result = {
       ...userData,
-      user: userWithoutPassword
+      user: userWithoutPassword,
     };
     return ResponseWrapper.success(result, '查询成功');
   }
@@ -95,7 +106,7 @@ export class UserController {
   @Get('list/dept/:deptId')
   async listByDept(@Param('deptId') deptId: number) {
     const users = await this.userService.findByDept(deptId);
-    const usersWithoutPassword = users.map(user => {
+    const usersWithoutPassword = users.map((user) => {
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword;
     });
@@ -171,7 +182,10 @@ export class UserController {
    * @returns 操作结果
    */
   @Put('updatePwd')
-  async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto, @Request() req) {
+  async updatePassword(
+    @Body() updatePasswordDto: UpdatePasswordDto,
+    @Request() req,
+  ) {
     const userId = req.user?.userId || req.user?.sub;
     if (!userId) {
       throw new UnauthorizedException('用户信息无效');
@@ -209,7 +223,7 @@ export class UserController {
    */
   @Delete(':userId')
   async delete(@Param('userId') userId: string) {
-    const ids = userId.split(',').map(id => +id);
+    const ids = userId.split(',').map((id) => +id);
     await this.userService.delete(ids);
     return ResponseWrapper.success(null, '删除成功');
   }
@@ -222,10 +236,13 @@ export class UserController {
   @Get('authRole/:userId')
   async getAuthRole(@Param('userId') userId: number) {
     const userData = await this.userService.findOne(userId);
-    return ResponseWrapper.success({
-      user: userData.user,
-      roles: userData.roles || [],
-    }, '查询成功');
+    return ResponseWrapper.success(
+      {
+        user: userData.user,
+        roles: userData.roles || [],
+      },
+      '查询成功',
+    );
   }
 
   /**

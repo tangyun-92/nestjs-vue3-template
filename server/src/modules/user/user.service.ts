@@ -141,6 +141,7 @@ export class UserService {
     return {
       user: {
         ...user,
+        deptId: +user.deptId,
         createTime: user.createTime?.toISOString(),
         updateTime: user.updateTime?.toISOString(),
         deptName,
@@ -162,6 +163,49 @@ export class UserService {
       postIds: posts.map(p => p.postId),
       posts: posts
     };
+  }
+
+  /**
+   * 获取所有角色列表
+   * @returns 角色列表
+   */
+  async findAllRoleList() {
+    try {
+      // 获取所有角色信息（不仅仅是用户分配的角色）
+      const allRoles = await this.userRoleService.getAllRoles();
+
+      // 手动序列化角色数据，避免 TypeORM 序列化问题
+      const serializedRoles = allRoles.map(role => ({
+        roleId: role.roleId,
+        roleName: role.roleName,
+        roleKey: role.roleKey,
+        roleSort: role.roleSort,
+        dataScope: role.dataScope || '1',
+        menuCheckStrictly: Boolean(role.menuCheckStrictly),
+        deptCheckStrictly: Boolean(role.deptCheckStrictly),
+        status: role.status,
+        delFlag: role.delFlag,
+        createDept: role.createDept,
+        createBy: role.createBy,
+        updateBy: role.updateBy,
+        createTime: role.createTime?.toISOString() || null,
+        updateTime: role.updateTime?.toISOString() || null,
+        remark: role.remark || '',
+        flag: false,
+        superAdmin: role.roleKey === 'superadmin'
+      }));
+
+      return {
+        user: null,
+        postIds: null,
+        roleIds: null,
+        posts: null,
+        roles: serializedRoles
+      };
+    } catch (error) {
+      console.error('获取所有角色列表失败:', error);
+      throw error;
+    }
   }
 
   /**

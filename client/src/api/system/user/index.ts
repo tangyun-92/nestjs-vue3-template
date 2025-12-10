@@ -40,6 +40,16 @@ export const getUser = (userId?: string | number): AxiosPromise<UserInfoVO> => {
 };
 
 /**
+ * 获取所有角色
+ */
+export const getAllRoles = (): AxiosPromise<RoleVO[]> => {
+  return request({
+    url: '/system/user/role/allRoleList',
+    method: 'get'
+  });
+};
+
+/**
  * 新增用户
  */
 export const addUser = (data: UserForm) => {
@@ -214,6 +224,7 @@ export default {
   getUser,
   optionSelect,
   addUser,
+  getAllRoles,
   updateUser,
   delUser,
   resetUserPwd,

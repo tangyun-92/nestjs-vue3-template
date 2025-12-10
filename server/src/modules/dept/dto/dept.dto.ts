@@ -71,6 +71,20 @@ export interface DeptOptionDto {
   parentId: number;
 }
 
+// 岗位选项DTO
+export interface PostOptionDto {
+  postId: number;
+  deptId: number;
+  postCode: string;
+  postName: string;
+  postCategory: string | null;
+  postSort: number;
+  status: string;
+  remark: string;
+  createTime: string;
+  deptName: string;
+}
+
 // 部门状态枚举
 export enum DeptStatus {
   NORMAL = '0',  // 正常

@@ -116,18 +116,18 @@
 
             <el-table-column label="操作" fixed="right" width="180" class-name="small-padding fixed-width">
               <template #default="scope">
-                <el-tooltip v-if="scope.row.userId !== 1" content="修改" placement="top">
+                <el-tooltip v-if="scope.row.userId !== '1'" content="修改" placement="top">
                   <el-button v-hasPermi="['system:user:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
                 </el-tooltip>
-                <el-tooltip v-if="scope.row.userId !== 1" content="删除" placement="top">
+                <el-tooltip v-if="scope.row.userId !== '1'" content="删除" placement="top">
                   <el-button v-hasPermi="['system:user:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
                 </el-tooltip>
 
-                <el-tooltip v-if="scope.row.userId !== 1" content="重置密码" placement="top">
+                <el-tooltip v-if="scope.row.userId !== '1'" content="重置密码" placement="top">
                   <el-button v-hasPermi="['system:user:resetPwd']" link type="primary" icon="Key" @click="handleResetPwd(scope.row)"></el-button>
                 </el-tooltip>
 
-                <el-tooltip v-if="scope.row.userId !== 1" content="分配角色" placement="top">
+                <el-tooltip v-if="scope.row.userId !== '1'" content="分配角色" placement="top">
                   <el-button v-hasPermi="['system:user:edit']" link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)"></el-button>
                 </el-tooltip>
               </template>
@@ -598,7 +598,7 @@ const cancel = () => {
 /** 新增按钮操作 */
 const handleAdd = async () => {
   reset();
-  const { data } = await api.getUser();
+  const { data } = await api.getAllRoles();
   dialog.visible = true;
   dialog.title = '新增用户';
   postOptions.value = data.posts;
