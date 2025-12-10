@@ -7,7 +7,8 @@ import {
   UpdatePasswordDto,
   ResetPasswordDto,
   ChangeStatusDto,
-  AssignRoleDto
+  AssignRoleDto,
+  UserDetailResponse
 } from './dto/user.dto';
 import { In, Repository, Like } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -112,7 +113,7 @@ export class UserService {
    * @param userId 用户ID
    * @returns 用户信息
    */
-  async findOne(userId: number): Promise<UserDataBaseDto> {
+  async findOne(userId: number): Promise<UserDetailResponse> {
     const user = await this.userRepository.findOne({
       where: { userId },
     });
@@ -127,13 +128,39 @@ export class UserService {
       this.userPostService.getUserPosts(userId),
     ]);
 
+    // 获取部门信息
+    let deptName: string | undefined = undefined;
+    if (user.deptId) {
+      const dept = await this.deptService.findOne(user.deptId);
+      deptName = dept.deptName;
+    }
+
+    // 获取所有角色信息（不仅仅是用户分配的角色）
+    const allRoles = await this.userRoleService.getAllRoles();
+
     return {
-      ...user,
-      createTime: user.createTime?.toISOString(),
-      updateTime: user.updateTime?.toISOString(),
-      roles,
+      user: {
+        ...user,
+        createTime: user.createTime?.toISOString(),
+        updateTime: user.updateTime?.toISOString(),
+        deptName,
+        roles: roles.map(role => ({
+          ...role,
+          flag: false,
+          superAdmin: role.roleKey === 'superadmin'
+        })),
+        roleIds: roles.map(r => r.roleId),
+        postIds: posts.map(p => p.postId),
+        roleId: roles.length > 0 ? roles[0].roleId : undefined
+      },
       roleIds: roles.map(r => r.roleId),
+      roles: allRoles.map(role => ({
+        ...role,
+        flag: roles.some(userRole => userRole.roleId === role.roleId),
+        superAdmin: role.roleKey === 'superadmin'
+      })),
       postIds: posts.map(p => p.postId),
+      posts: posts
     };
   }
 

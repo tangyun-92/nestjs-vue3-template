@@ -63,6 +63,7 @@ export interface UserDataBaseDto {
   deptName?: string;
   roles?: any[];
   roleIds?: any;
+  roleId?: number;
   postIds?: any;
   admin?: boolean;
 }
@@ -90,4 +91,12 @@ export interface AssignRoleDto {
 export interface UserVO extends Omit<UserDataBaseDto, 'password'> {
   createTime?: string;
   updateTime?: string;
+}
+
+export interface UserDetailResponse {
+  user: UserDataBaseDto;
+  roleIds: number[];
+  roles: any[];
+  postIds: number[];
+  posts: any[];
 }

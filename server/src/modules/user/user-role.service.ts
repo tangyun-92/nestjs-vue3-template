@@ -241,4 +241,19 @@ export class UserRoleService {
 
     return userRoles.map(ur => ur.role.roleKey);
   }
+
+  /**
+   * 获取所有角色列表
+   * @returns 角色列表
+   */
+  async getAllRoles() {
+    return await this.roleRepository.find({
+      where: {
+        delFlag: '0'
+      },
+      order: {
+        roleSort: 'ASC'
+      }
+    });
+  }
 }

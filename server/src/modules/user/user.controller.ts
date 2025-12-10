@@ -49,9 +49,9 @@ export class UserController {
    */
   @Get(':userId')
   async findOne(@Param('userId') userId: number) {
-    const user = await this.userService.findOne(userId);
-    const { password, ...userWithoutPassword } = user;
-    return ResponseWrapper.success(userWithoutPassword, '查询成功');
+    const userData = await this.userService.findOne(userId);
+    // 直接返回 userData，因为它已经是正确的结构
+    return ResponseWrapper.success(userData, '查询成功');
   }
 
   /**
@@ -77,9 +77,14 @@ export class UserController {
     if (!userId) {
       throw new UnauthorizedException('用户信息无效');
     }
-    const user = await this.userService.findOne(+userId);
-    const { password, ...userWithoutPassword } = user;
-    return ResponseWrapper.success(userWithoutPassword, '查询成功');
+    const userData = await this.userService.findOne(+userId);
+    // 从 user.user 中移除密码字段
+    const { password, ...userWithoutPassword } = userData.user;
+    const result = {
+      ...userData,
+      user: userWithoutPassword
+    };
+    return ResponseWrapper.success(result, '查询成功');
   }
 
   /**
@@ -216,10 +221,10 @@ export class UserController {
    */
   @Get('authRole/:userId')
   async getAuthRole(@Param('userId') userId: number) {
-    const user = await this.userService.findOne(userId);
+    const userData = await this.userService.findOne(userId);
     return ResponseWrapper.success({
-      user,
-      roles: user.roles || [],
+      user: userData.user,
+      roles: userData.roles || [],
     }, '查询成功');
   }
 
