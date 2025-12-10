@@ -3,7 +3,12 @@ import { GlobalStatus } from "src/types/global.types";
 
 export interface QueryUserDto {
   userName?: string;
+  nickName?: string;
+  phonenumber?: string;
   status?: GlobalStatus;
+  deptId?: number;
+  roleId?: number;
+  userIds?: string | number | (string | number)[];
   page?: number;
   pageSize?: number;
 }
@@ -17,10 +22,28 @@ export interface CreateUserDto {
   sex?: UserSex;
   status?: GlobalStatus;
   remark?: string;
+  deptId?: number;
+  postIds?: number[];
+  roleIds?: number[];
+}
+
+export interface UpdateUserDto {
+  userId: number;
+  userName?: string;
+  nickName?: string;
+  phonenumber?: string;
+  email?: string;
+  sex?: UserSex;
+  status?: GlobalStatus;
+  remark?: string;
+  deptId?: number;
+  postIds?: number[];
+  roleIds?: number[];
 }
 
 export interface UserDataBaseDto {
   userId?: number;
+  tenantId?: string;
   deptId?: number;
   userName?: string;
   nickName?: string;
@@ -28,13 +51,43 @@ export interface UserDataBaseDto {
   email?: string;
   phonenumber?: string;
   sex?: string;
-  avatar?: number;
+  avatar?: number | string;  // 兼容两种类型
   password?: string;
   status?: string;
   delFlag?: string;
   loginIp?: string;
   loginDate?: Date;
   remark?: string;
-  createTime?: Date;
-  updateTime?: Date;
+  createTime?: Date | string;  // 兼容两种类型
+  updateTime?: Date | string;  // 兼容两种类型
+  deptName?: string;
+  roles?: any[];
+  roleIds?: any;
+  postIds?: any;
+  admin?: boolean;
+}
+
+export interface UpdatePasswordDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordDto {
+  userId: number;
+  password: string;
+}
+
+export interface ChangeStatusDto {
+  userId: number;
+  status: GlobalStatus;
+}
+
+export interface AssignRoleDto {
+  userId: number;
+  roleIds: number[];
+}
+
+export interface UserVO extends Omit<UserDataBaseDto, 'password'> {
+  createTime?: string;
+  updateTime?: string;
 }

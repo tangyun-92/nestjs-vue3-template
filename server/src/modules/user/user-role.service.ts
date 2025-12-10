@@ -167,6 +167,25 @@ export class UserRoleService {
   }
 
   /**
+   * 更新用户角色
+   * @param userId 用户ID
+   * @param roleIds 角色ID数组
+   */
+  async updateUserRoles(userId: number, roleIds: number[]) {
+    await this.assignRolesToUser(userId, roleIds);
+  }
+
+  /**
+   * 删除用户角色关联（用于软删除用户时）
+   * @param userIds 用户ID数组
+   */
+  async deleteUserRoles(userIds: number[]) {
+    await this.userRoleRepository.delete({
+      userId: In(userIds)
+    });
+  }
+
+  /**
    * 批量取消用户的多个角色
    * @param userId 用户ID
    * @param roleIds 角色ID数组

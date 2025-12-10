@@ -204,7 +204,7 @@ export const listUserByDeptId = (deptId: string | number): AxiosPromise<UserVO[]
  */
 export const deptTreeSelect = (): AxiosPromise<DeptTreeVO[]> => {
   return request({
-    url: '/system/user/deptTree',
+    url: '/system/dept/deptTree',
     method: 'get'
   });
 };

@@ -28,10 +28,56 @@ export class DeptService {
    */
   private buildDeptTree(depts: DeptDataDto[], parentId: number = 0): DeptDataDto[] {
     return depts
-      .filter(dept => +dept.parentId === +parentId)
+      .filter(dept => {
+        const deptParentId = dept.parentId === null ? 0 : dept.parentId;
+        const currentParentId = parentId === null ? 0 : parentId;
+        return deptParentId === currentParentId;
+      })
       .map(dept => ({
         ...dept,
         children: this.buildDeptTree(depts, dept.deptId)
+      }));
+  }
+
+  /**
+   * 构建部门树（用于前端选择器）
+   * @returns 部门树形列表
+   */
+  async getDeptTree() {
+    const depts = await this.deptRepository.find({
+      where: {
+        delFlag: DelFlag.EXISTS
+      },
+      order: {
+        parentId: 'ASC',
+        orderNum: 'ASC'
+      }
+    });
+
+    // 转换为树形结构
+    const deptTree = this.buildDeptTreeSelect(depts, 0);
+
+    return deptTree;
+  }
+
+  /**
+   * 构建部门选择树
+   * @param depts 部门列表
+   * @param parentId 父部门ID
+   * @returns 选择树形结构
+   */
+  private buildDeptTreeSelect(depts: Dept[], parentId: number = 0): any[] {
+    return depts
+      .filter(dept => {
+        return +parentId === +dept.parentId;
+      })
+      .map(dept => ({
+        id: dept.deptId,
+        parentId: dept.parentId === null ? 0 : dept.parentId,
+        label: dept.deptName,
+        weight: dept.orderNum,
+        disabled: dept.status === DeptStatus.NORMAL,
+        children: this.buildDeptTreeSelect(depts, dept.deptId)
       }));
   }
 
@@ -300,7 +346,7 @@ export class DeptService {
    * @param deptId 部门ID
    * @returns 子部门列表
    */
-  private async findChildDepts(deptId: number): Promise<Dept[]> {
+  async findChildDepts(deptId: number): Promise<Dept[]> {
     const depts = await this.deptRepository.find({
       where: {
         delFlag: DelFlag.EXISTS
@@ -309,7 +355,13 @@ export class DeptService {
 
     const findChildren = (parentId: number): Dept[] => {
       return depts
-        .filter(dept => dept.parentId === parentId)
+        .filter(dept => {
+          // 处理parentId的比较，考虑null的情况
+          if (parentId === 0) {
+            return dept.parentId === null || dept.parentId === 0;
+          }
+          return dept.parentId === parentId;
+        })
         .flatMap(dept => [dept, ...findChildren(dept.deptId)]);
     };
 
@@ -394,7 +446,11 @@ export class DeptService {
    */
   buildDeptTreeOptions(depts: DeptDataDto[], parentId: number = 0): DeptTreeDto[] {
     return depts
-      .filter(dept => +dept.parentId === +parentId)
+      .filter(dept => {
+        const deptParentId = dept.parentId === null ? 0 : dept.parentId;
+        const currentParentId = parentId === null ? 0 : parentId;
+        return deptParentId === currentParentId;
+      })
       .map(dept => ({
         id: dept.deptId,
         label: dept.deptName,

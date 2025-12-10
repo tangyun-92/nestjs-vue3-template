@@ -79,7 +79,8 @@ export class AuthService {
       });
 
       const { password, ...result } = user;
-      return result;
+      // 确保返回的是UserDataBaseDto类型
+      return result as UserDataBaseDto;
     } else {
       await recordFailure('用户名或密码错误');
     }

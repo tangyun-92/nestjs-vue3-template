@@ -21,6 +21,16 @@ export class DeptController {
   }
 
   /**
+   * 获取部门树（用于用户选择）
+   * @returns 部门树形列表
+   */
+  @Get('deptTree')
+  async deptTree() {
+    const deptTree = await this.deptService.getDeptTree();
+    return ResponseWrapper.success(deptTree, '查询成功');
+  }
+
+  /**
    * 通过部门ID查询部门选项
    * @param query 查询参数
    * @returns 部门选项列表

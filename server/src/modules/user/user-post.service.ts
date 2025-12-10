@@ -196,4 +196,23 @@ export class UserPostService {
 
     return postUsers.map(pu => pu.userId);
   }
+
+  /**
+   * 更新用户岗位
+   * @param userId 用户ID
+   * @param postIds 岗位ID数组
+   */
+  async updateUserPosts(userId: number, postIds: number[]) {
+    await this.assignUserPosts(userId, postIds);
+  }
+
+  /**
+   * 删除用户岗位关联（用于软删除用户时）
+   * @param userIds 用户ID数组
+   */
+  async deleteUserPosts(userIds: number[]) {
+    await this.userPostRepository.delete({
+      userId: In(userIds)
+    });
+  }
 }
