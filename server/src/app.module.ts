@@ -14,7 +14,7 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerMiddleware } from './common/logger.middleware';
 import { OperLogMiddlewareService } from './common/services/oper-log.service';
-import { OperLogInterceptor } from './common/interceptors/oper-log.interceptor';
+import { AutoOperLogInterceptor } from './common/interceptors/auto-oper-log.interceptor';
 import { MenuModule } from './modules/menu/menu.module';
 import { DictModule } from './modules/dict/dict.module';
 import { ConfigModule } from './modules/config/config.module';
@@ -105,7 +105,7 @@ import { LoginInfoModule } from './modules/monitor/loginlog/login-log.module';
     // 操作日志拦截器
     {
       provide: APP_INTERCEPTOR,
-      useClass: OperLogInterceptor,
+      useClass: AutoOperLogInterceptor,
     },
   ],
 })
