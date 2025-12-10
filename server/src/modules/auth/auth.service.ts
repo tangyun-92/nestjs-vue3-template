@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, Inject, forwardRef } from "@nestjs/c
 import { UserDataBaseDto } from "../user/dto/user.dto";
 import { Repository } from "typeorm";
 import { User } from "src/entities/user.entity";
+import { LoginInfo } from "src/entities/login-log.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import bcrypt from "bcryptjs";
 import { JwtService } from "@nestjs/jwt";
@@ -9,47 +10,78 @@ import { GlobalStatus } from "src/types/global.types";
 import { UserRoleService } from "../user/user-role.service";
 import { RoleMenuService } from "../role/role-menu.service";
 import { MenuService } from "../menu/menu.service";
+import { Request } from "express";
+import { IpLocationService } from "src/common/services/ip-location.service";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(LoginInfo)
+    private loginInfoRepository: Repository<LoginInfo>,
     private jwtService: JwtService,
     private readonly userRoleService: UserRoleService,
     private readonly roleMenuService: RoleMenuService,
     private readonly menuService: MenuService,
+    private readonly ipLocationService: IpLocationService,
   ) {}
 
   /**
    * 验证用户
    * @param userName 用户名
    * @param password 密码
+   * @param req 请求对象，用于获取IP等信息
    * @returns 用户信息
    */
   async validateUser(
     userName: string,
     password: string,
+    req?: Request,
   ): Promise<UserDataBaseDto | null> {
     const user = await this.userRepository.findOne({ where: { userName: userName } });
+    const clientInfo = this.getClientInfo(req);
+
+    // 记录登录失败的辅助函数
+    const recordFailure = async (msg: string, throwError?: string) => {
+      await this.recordLoginLog({
+        userName,
+        status: 1, // 失败
+        ...clientInfo,
+        msg,
+      });
+      if (throwError) {
+        throw new UnauthorizedException(throwError);
+      }
+    };
+
     if (!user) {
+      await recordFailure('用户名或密码错误');
       return null;
     }
 
-    // 检查用户状态
     if (user.status !== GlobalStatus.ACTIVE) {
-      throw new UnauthorizedException('用户被禁用');
+      await recordFailure('用户已被禁用', '用户被禁用');
     }
 
-    // 验证密码
     if (await bcrypt.compare(password, user.password)) {
       // 更新最后登录时间
       await this.userRepository.update(user.userId, {
         loginDate: new Date(),
       });
 
+      // 记录登录成功日志
+      await this.recordLoginLog({
+        userName,
+        status: 0, // 成功
+        ...clientInfo,
+        msg: '登录成功',
+      });
+
       const { password, ...result } = user;
       return result;
+    } else {
+      await recordFailure('用户名或密码错误');
     }
 
     return null;
@@ -197,5 +229,113 @@ export class AuthService {
         await this.getMenuPermissions(child.menuId, permissionSet);
       }
     }
+  }
+
+  /**
+   * 获取客户端信息
+   * @param req 请求对象
+   * @returns 客户端信息
+   */
+  private getClientInfo(req?: Request) {
+    const userAgent = req?.headers['user-agent'] || '';
+
+    // 解析浏览器信息
+    let browser = '未知';
+    if (userAgent.includes('Chrome')) {
+      browser = 'Chrome';
+    } else if (userAgent.includes('Firefox')) {
+      browser = 'Firefox';
+    } else if (userAgent.includes('Safari')) {
+      browser = 'Safari';
+    } else if (userAgent.includes('Edge')) {
+      browser = 'Edge';
+    } else if (userAgent.includes('MSIE')) {
+      browser = 'IE';
+    }
+
+    // 解析操作系统
+    let os = '未知';
+    if (userAgent.includes('Windows')) {
+      os = 'Windows';
+    } else if (userAgent.includes('Mac')) {
+      os = 'MacOS';
+    } else if (userAgent.includes('Linux')) {
+      os = 'Linux';
+    } else if (userAgent.includes('Android')) {
+      os = 'Android';
+    } else if (userAgent.includes('iOS')) {
+      os = 'iOS';
+    }
+
+    // 获取IP地址
+    const ip = req?.ip || req?.connection?.remoteAddress || req?.socket?.remoteAddress || '127.0.0.1';
+    const cleanIp = ip.replace(/^::ffff:/, '');
+
+    // 使用IP定位服务查询地理位置
+    const loginLocation = this.ipLocationService.getLocationByIp(cleanIp);
+
+    // 判断设备类型
+    let deviceType = 'pc';
+    let clientKey = 'pc';
+    if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) {
+      deviceType = 'mobile';
+      clientKey = 'mobile';
+    } else if (userAgent.includes('Tablet') || userAgent.includes('iPad')) {
+      deviceType = 'tablet';
+      clientKey = 'tablet';
+    }
+
+    return {
+      ipaddr: cleanIp,
+      loginLocation,
+      browser,
+      os,
+      clientKey,
+      deviceType,
+    };
+  }
+
+  /**
+   * 记录登录日志
+   * @param loginData 登录数据
+   */
+  private async recordLoginLog(loginData: {
+    userName: string;
+    status: number;
+    ipaddr: string;
+    loginLocation: string;
+    browser: string;
+    os: string;
+    msg: string;
+    clientKey: string;
+    deviceType: string;
+  }) {
+    try {
+      const loginLog = this.loginInfoRepository.create({
+        ...loginData,
+        tenantId: '000000', // 默认租户
+        loginTime: new Date(),
+      });
+
+      await this.loginInfoRepository.save(loginLog);
+    } catch (error) {
+      console.error('记录登录日志失败:', error);
+    }
+  }
+
+  /**
+   * 记录退出日志
+   * @param userName 用户名
+   * @param req 请求对象
+   */
+  async recordLogoutLog(userName: string, req?: Request) {
+    const clientInfo = this.getClientInfo(req);
+
+    await this.recordLoginLog({
+      userName,
+      status: 0, // 退出也算成功
+      ...clientInfo,
+      msg: '退出成功',
+    });
   }
 }

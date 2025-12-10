@@ -14,10 +14,11 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto, @Request() req) {
     const user = await this.authService.validateUser(
       loginDto.username,
       loginDto.password,
+      req,
     );
 
     if (!user) {
@@ -29,9 +30,14 @@ export class AuthController {
     return result;
   }
 
-  @Public()
   @Post('logout')
-  async logout() {
+  async logout(@Request() req) {
+    // 获取用户信息
+    const userName = req.user?.userName || '未知用户';
+
+    // 记录退出日志
+    await this.authService.recordLogoutLog(userName, req);
+
     return ResponseWrapper.success('', '退出成功');
   }
 

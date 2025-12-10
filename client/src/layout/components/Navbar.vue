@@ -165,6 +165,8 @@ const logout = async () => {
     type: 'warning'
   } as ElMessageBoxOptions);
   userStore.logout().then(() => {
+    proxy?.$modal.msgSuccess('退出成功');
+
     router.replace({
       path: '/login',
       query: {

@@ -19,6 +19,8 @@ import { RoleModule } from './modules/role/role.module';
 import { DeptModule } from './modules/dept/dept.module';
 import { PostModule } from './modules/post/post.module';
 import { NoticeModule } from './modules/notice/notice.module';
+import { OperLogModule } from './modules/monitor/operlog/oper-log.module';
+import { LoginInfoModule } from './modules/monitor/loginlog/login-log.module';
 
 @Module({
   imports: [
@@ -65,6 +67,8 @@ import { NoticeModule } from './modules/notice/notice.module';
     DeptModule,
     PostModule,
     NoticeModule,
+    OperLogModule,
+    LoginInfoModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
