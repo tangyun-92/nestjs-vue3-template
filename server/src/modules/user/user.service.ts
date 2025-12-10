@@ -44,7 +44,7 @@ export class UserService {
       deptId,
       roleId,
       page = 1,
-      pageSize = 10
+      pageSize = 10,
     } = queryUserDto;
 
     const queryBuilder = this.userRepository.createQueryBuilder('user');
@@ -74,18 +74,19 @@ export class UserService {
     if (deptId) {
       // 获取该部门及其所有子部门的ID
       const childDepts = await this.deptService.findChildDepts(deptId);
-      const allDeptIds = [deptId, ...childDepts.map(d => d.deptId)];
+      const allDeptIds = [deptId, ...childDepts.map((d) => d.deptId)];
 
-      queryBuilder.andWhere('user.deptId IN (:...deptIds)', { deptIds: allDeptIds });
+      queryBuilder.andWhere('user.deptId IN (:...deptIds)', {
+        deptIds: allDeptIds,
+      });
     }
+    queryBuilder.andWhere('user.delFlag = :delFlag', { delFlag: '0' });
 
     // 如果有roleId，需要关联查询
     if (roleId) {
-      queryBuilder.innerJoin(
-        'sys_user_role',
-        'ur',
-        'ur.user_id = user.userId'
-      ).andWhere('ur.role_id = :roleId', { roleId });
+      queryBuilder
+        .innerJoin('sys_user_role', 'ur', 'ur.user_id = user.userId')
+        .andWhere('ur.role_id = :roleId', { roleId });
     }
 
     const total = await queryBuilder.getCount();
@@ -96,8 +97,28 @@ export class UserService {
       .getMany();
 
     // 转换为UserDataBaseDto格式
-    const userDtos: UserDataBaseDto[] = users.map(user => ({
+    const deptIds = Array.from(
+      new Set(
+        users
+          .map((user) => (user.deptId ? +user.deptId : undefined))
+          .filter((id): id is number => !!id),
+      ),
+    );
+
+    const deptMap = new Map<number, string>();
+    const deptList = await Promise.all(
+      deptIds.map((id) => this.deptService.findOne(id).catch(() => null)),
+    );
+    deptList.forEach((dept) => {
+      if (dept) {
+        deptMap.set(+dept.deptId, dept.deptName);
+      }
+    });
+
+    const userDtos: UserDataBaseDto[] = users.map((user) => ({
       ...user,
+      deptId: +user.deptId,
+      deptName: deptMap.get(+user.deptId) || '',
       createTime: user.createTime?.toISOString(),
       updateTime: user.updateTime?.toISOString(),
     }));
@@ -331,7 +352,7 @@ export class UserService {
 
     // 软删除用户
     await this.userRepository.update(userIds, {
-      delFlag: '2', // 删除标记
+      delFlag: '1', // 删除标记
     });
 
     // 删除用户角色关联
