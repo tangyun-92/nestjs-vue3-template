@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Put, Delete, Param, Query, UseGuards, Inject, Request, UnauthorizedException, Res, Headers } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Post, Put, Delete, Param, Query, UseGuards, Inject, Request, UnauthorizedException, Res, Headers, UploadedFile, UseInterceptors } from "@nestjs/common";
 import type {
   CreateUserDto,
   QueryUserDto,
@@ -13,7 +13,11 @@ import { UserService } from "./user.service";
 import { DeptService } from "../dept/dept.service";
 import { ResponseWrapper } from "src/common/response.wrapper";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import type{ Response } from 'express';
+import type { Response } from 'express';
+import type { Multer } from 'multer';
+import * as fs from 'fs';
+import * as path from 'path';
+import { FileInterceptor } from "@nestjs/platform-express";
 
 @UseGuards(JwtAuthGuard)
 @Controller('system/user')
@@ -98,6 +102,53 @@ export class UserController {
 
     // 返回文件流
     res.send(buffer);
+  }
+
+  /**
+   * 下载用户导入模板
+   */
+  @Post('importTemplate')
+  async importTemplate(@Res() res: Response) {
+    // 运行时路径指向 dist，使用项目根目录定位模板
+    const templatePath = path.resolve(process.cwd(), 'src', 'templates', 'user_template.xlsx');
+
+    try {
+      const stat = await fs.promises.stat(templatePath);
+      res.set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': 'attachment; filename=user_template.xlsx',
+        'Content-Length': stat.size,
+      });
+
+      const stream = fs.createReadStream(templatePath);
+      stream.pipe(res);
+    } catch (error) {
+      throw new UnauthorizedException('模板文件不存在或无法读取');
+    }
+  }
+
+  /**
+   * 导入用户数据
+   * 接收 FormData 文件，返回导入结果
+   */
+  @Post('importData')
+  @UseInterceptors(FileInterceptor('file'))
+  async importData(
+    @Query('updateSupport') updateSupport: string = '0',
+    @UploadedFile() file?: Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('请上传文件');
+    }
+
+    const result = await this.userService.importUsersFromExcel(
+      file.buffer,
+      updateSupport === '1',
+    );
+
+    return ResponseWrapper.importSuccess(
+      `恭喜您，数据已全部导入成功！共 ${result.count} 条，数据如下：<br/>${result.details.join('<br/>')}`,
+    );
   }
 
   /**

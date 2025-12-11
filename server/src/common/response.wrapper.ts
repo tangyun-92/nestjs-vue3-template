@@ -23,6 +23,25 @@ export class ResponseWrapper {
   }
 
   /**
+   * 导入成功响应
+   * @param msg 响应消息
+   * @param data 响应数据
+   * @param code 状态码
+   */
+  static importSuccess<T>(
+    msg: string = '操作成功',
+    data: T | null = null,
+    code: number = 200,
+  ) {
+    return {
+      code,
+      result: true,
+      data,
+      msg,
+    };
+  }
+
+  /**
    * 失败响应
    * @param message 错误消息
    * @param code 状态码
