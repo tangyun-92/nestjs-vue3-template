@@ -19,8 +19,7 @@ import { UserRoleService } from './user-role.service';
 import { UserPostService } from './user-post.service';
 import { DeptService } from '../dept/dept.service';
 import { DictService } from '../dict/dict.service';
-import { exportToExcel, ExcelColumn } from 'src/utils/excel';
-import * as ExcelJS from 'exceljs';
+import { exportToExcel, ExcelColumn, importFromExcel } from 'src/utils/excel';
 
 export class UserService {
   constructor(
@@ -630,38 +629,7 @@ export class UserService {
     count: number;
     details: string[];
   }> {
-    const workbook = new ExcelJS.Workbook();
-    const buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer);
-    await workbook.xlsx.load(buffer as any);
-    const worksheet = workbook.worksheets[0];
-    if (!worksheet) {
-      return { count: 0, details: [] };
-    }
-
-    const details: string[] = [];
-
-    // 构建表头映射
-    const headerRow = worksheet.getRow(1);
-    const headerMap = new Map<string, number>();
-    headerRow.eachCell((cell, colNumber) => {
-      const key = (cell.value || '').toString().trim();
-      if (key) {
-        headerMap.set(key, colNumber);
-      }
-    });
-
-    const getCellValue = (row: ExcelJS.Row, keys: string[]): string => {
-      for (const key of keys) {
-        const col = headerMap.get(key);
-        if (col) {
-          const val = row.getCell(col).text?.trim();
-          if (val) return val;
-        }
-      }
-      return '';
-    };
-
-    // 字典映射（label -> value）
+    // 获取字典数据
     const sexDict = await this.dictService.getDictDataByType('sys_user_sex');
     const statusDict = await this.dictService.getDictDataByType('sys_normal_disable');
     const sexMap = new Map<string, string>();
@@ -678,70 +646,84 @@ export class UserService {
       return statusMap.get(label) || '0';
     };
 
-    let imported = 0;
+    // 使用通用导入方法
+    const result = await importFromExcel(
+      fileBuffer,
+      async (rowData, index) => {
+        const userName = rowData['用户名称'];
 
-    // 从第二行开始读取数据
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-    });
-
-    for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
-      const row = worksheet.getRow(rowNumber);
-
-      const userId = getCellValue(row, ['用户编号']);
-      const userName = getCellValue(row, ['用户名称']);
-      const nickName = getCellValue(row, ['用户昵称']);
-      const deptIdStr = getCellValue(row, ['部门']);
-      const phonenumber = getCellValue(row, ['手机号码']);
-      const email = getCellValue(row, ['邮箱']);
-      const sexLabel = getCellValue(row, ['性别']);
-      const statusLabel = getCellValue(row, ['状态']);
-      const remark = getCellValue(row, ['备注']);
-
-      if (!userName) continue;
-
-      const sex = mapSex(sexLabel);
-      const status = mapStatus(statusLabel);
-      const deptId = deptIdStr ? Number(deptIdStr) : undefined;
-
-      const existing = await this.userRepository.findOne({ where: { userName } });
-
-      if (existing) {
-        if (!updateSupport) {
-          continue;
+        // 如果用户名为空，跳过
+        if (!userName) {
+          return { action: 'skip' };
         }
-        await this.userRepository.update(existing.userId, {
-          nickName,
-          phonenumber,
-          email,
-          deptId,
-          sex: sex as any,
-          status,
-          remark,
-        });
-        imported++;
-        details.push(`${imported}、账号 ${userName} 更新成功`);
-      } else {
-        const password = await bcrypt.hash('123456', 10);
-        const newUser = this.userRepository.create({
-          userId: userId ? Number(userId) : undefined,
-          userName,
-          password,
-          nickName,
-          phonenumber,
-          email,
-          deptId,
-          sex: sex as any,
-          status,
-          remark,
-          delFlag: '0',
-        });
-        await this.userRepository.save(newUser);
-        imported++;
-        details.push(`${imported}、账号 ${userName} 导入成功`);
-      }
-    }
 
-    return { count: imported, details };
+        // 提取数据
+        const userId = rowData['用户编号'];
+        const nickName = rowData['用户昵称'];
+        const deptIdStr = rowData['部门'];
+        const phonenumber = rowData['手机号码'];
+        const email = rowData['邮箱'];
+        const sexLabel = rowData['性别'];
+        const statusLabel = rowData['状态'];
+        const remark = rowData['备注'];
+
+        const sex = mapSex(sexLabel);
+        const status = mapStatus(statusLabel);
+        const deptId = deptIdStr ? Number(deptIdStr) : undefined;
+
+        // 检查用户是否已存在
+        const existing = await this.userRepository.findOne({ where: { userName } });
+
+        if (existing) {
+          // 如果不允许更新，跳过
+          if (!updateSupport) {
+            return { action: 'skip' };
+          }
+
+          // 更新用户
+          await this.userRepository.update(existing.userId, {
+            nickName,
+            phonenumber,
+            email,
+            deptId,
+            sex: sex as any,
+            status,
+            remark,
+          });
+
+          return {
+            action: 'update',
+            message: `账号 ${userName} 更新成功`,
+          };
+        } else {
+          // 创建新用户
+          const password = await bcrypt.hash('123456', 10);
+          const newUser = this.userRepository.create({
+            userId: userId ? Number(userId) : undefined,
+            userName,
+            password,
+            nickName,
+            phonenumber,
+            email,
+            deptId,
+            sex: sex as any,
+            status,
+            remark,
+            delFlag: '0',
+          });
+          await this.userRepository.save(newUser);
+
+          return {
+            action: 'create',
+            message: `账号 ${userName} 导入成功`,
+          };
+        }
+      }
+    );
+
+    return {
+      count: result.count,
+      details: result.details,
+    };
   }
 }

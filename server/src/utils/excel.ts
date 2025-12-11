@@ -119,6 +119,160 @@ async function generateBuffer(workbook: ExcelJS.Workbook): Promise<Buffer> {
 }
 
 /**
+ * Excel 导入行处理函数类型
+ */
+export interface ExcelImportRowProcessor<T> {
+  (rowData: Record<string, string>, index: number): Promise<{
+    action: 'create' | 'update' | 'skip';
+    data?: T;
+    message?: string;
+  }>;
+}
+
+/**
+ * Excel 导入结果
+ */
+export interface ExcelImportResult {
+  /** 导入总数 */
+  count: number;
+  /** 详细信息列表 */
+  details: string[];
+  /** 成功导入的数据列表 */
+  successData: any[];
+  /** 失败的数据列表 */
+  failData: Array<{
+    row: number;
+    data: Record<string, string>;
+    error: string;
+  }>;
+}
+
+/**
+ * Excel 导入选项
+ */
+export interface ExcelImportOptions {
+  /** 跳过行数（默认跳过第一行表头） */
+  skipRows?: number;
+  /** 是否忽略空行 */
+  ignoreEmptyRows?: boolean;
+  /** 最大处理行数 */
+  maxRows?: number;
+}
+
+/**
+ * 从 Excel 文件读取数据
+ * @param fileBuffer Excel 文件 buffer
+ * @param processor 行处理函数
+ * @param options 导入选项
+ * @returns 导入结果
+ */
+export async function importFromExcel<T = any>(
+  fileBuffer: Buffer,
+  processor: ExcelImportRowProcessor<T>,
+  options: ExcelImportOptions = {},
+): Promise<ExcelImportResult> {
+  const {
+    skipRows = 1,
+    ignoreEmptyRows = true,
+    maxRows = 10000,
+  } = options;
+
+  const workbook = new ExcelJS.Workbook();
+  const buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer);
+  await workbook.xlsx.load(buffer as any);
+  const worksheet = workbook.worksheets[0];
+
+  if (!worksheet) {
+    return {
+      count: 0,
+      details: ['Excel 文件中没有工作表'],
+      successData: [],
+      failData: [],
+    };
+  }
+
+  // 构建表头映射
+  const headerRow = worksheet.getRow(1);
+  const headerMap = new Map<string, number>();
+  headerRow.eachCell((cell, colNumber) => {
+    const key = (cell.value || '').toString().trim();
+    if (key) {
+      headerMap.set(key, colNumber);
+    }
+  });
+
+  // 获取行数据的辅助函数
+  const getRowData = (row: ExcelJS.Row): Record<string, string> => {
+    const data: Record<string, string> = {};
+    headerMap.forEach((colNum, header) => {
+      const val = row.getCell(colNum).text?.trim();
+      if (val !== undefined) {
+        data[header] = val;
+      }
+    });
+    return data;
+  };
+
+  // 检查行是否为空
+  const isRowEmpty = (row: ExcelJS.Row): boolean => {
+    let hasValue = false;
+    row.eachCell((cell) => {
+      if (cell.value && cell.value.toString().trim()) {
+        hasValue = true;
+      }
+    });
+    return !hasValue;
+  };
+
+  const result: ExcelImportResult = {
+    count: 0,
+    details: [],
+    successData: [],
+    failData: [],
+  };
+
+  let processedCount = 0;
+
+  // 处理数据行
+  for (let rowNumber = skipRows + 1; rowNumber <= worksheet.rowCount && processedCount < maxRows; rowNumber++) {
+    const row = worksheet.getRow(rowNumber);
+
+    // 跳过空行
+    if (ignoreEmptyRows && isRowEmpty(row)) {
+      continue;
+    }
+
+    const rowData = getRowData(row);
+    processedCount++;
+
+    try {
+      const processResult = await processor(rowData, processedCount);
+
+      if (processResult.action === 'skip') {
+        continue;
+      }
+
+      if (processResult.action === 'create' || processResult.action === 'update') {
+        result.count++;
+        result.details.push(processResult.message || `${result.count}、数据已${processResult.action === 'create' ? '导入' : '更新'}`);
+        if (processResult.data) {
+          result.successData.push(processResult.data);
+        }
+      }
+    } catch (error) {
+      result.failData.push({
+        row: rowNumber,
+        data: rowData,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      result.details.push(`第 ${rowNumber} 行处理失败: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  return result;
+}
+
+/**
  * 导出数据为 Excel
  * @param columns 列定义
  * @param data 数据数组
