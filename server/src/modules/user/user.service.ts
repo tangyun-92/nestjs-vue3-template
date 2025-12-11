@@ -18,6 +18,8 @@ import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { UserRoleService } from './user-role.service';
 import { UserPostService } from './user-post.service';
 import { DeptService } from '../dept/dept.service';
+import { DictService } from '../dict/dict.service';
+import { exportToExcel, ExcelColumn } from 'src/utils/excel';
 
 export class UserService {
   constructor(
@@ -26,6 +28,7 @@ export class UserService {
     private userRoleService: UserRoleService,
     private userPostService: UserPostService,
     private deptService: DeptService,
+    private dictService: DictService,
   ) {}
 
   /**
@@ -553,4 +556,67 @@ export class UserService {
     };
   }
 
+  /**
+   * 导出用户列表为 Excel
+   * @param query 查询参数
+   * @returns Excel buffer
+   */
+  async exportUsers(queryUserDto: QueryUserDto): Promise<Buffer> {
+    // 获取所有用户数据（不分页）
+    const { users } = await this.findAll({
+      ...queryUserDto,
+      page: 1,
+      pageSize: 100000, // 设置一个很大的数来获取所有数据
+    });
+
+    // 定义列
+    const columns: ExcelColumn[] = [
+      { header: '用户编号', key: 'userId', width: 15 },
+      { header: '用户名称', key: 'userName', width: 20 },
+      { header: '用户昵称', key: 'nickName', width: 20 },
+      { header: '部门', key: 'deptName', width: 20 },
+      { header: '手机号码', key: 'phonenumber', width: 15 },
+      { header: '邮箱', key: 'email', width: 30 },
+      { header: '性别', key: 'sex', width: 10 },
+      { header: '状态', key: 'status', width: 10 },
+      { header: '创建时间', key: 'createTime', width: 20 },
+      { header: '最后登录时间', key: 'loginDate', width: 20 },
+      { header: '备注', key: 'remark', width: 30 },
+    ];
+
+    // 先并行获取所有用户的性别文本
+    const sexTexts = await Promise.all(
+      users.map(user => this.getSexText(user.sex))
+    );
+
+    // 准备数据
+    const data = users.map((user, index) => ({
+      userId: user.userId,
+      userName: user.userName || '',
+      nickName: user.nickName || '',
+      deptName: user.deptName || '',
+      phonenumber: user.phonenumber || '',
+      email: user.email || '',
+      sex: sexTexts[index],
+      status: user.status === '0' ? '正常' : '停用',
+      loginDate: user.loginDate || '',
+      createTime: user.createTime || '',
+      remark: user.remark || '',
+    }));
+
+    // 使用 Excel 工具函数导出
+    return exportToExcel(columns, data, {
+      sheetName: '用户列表',
+    });
+  }
+
+  /**
+   * 获取性别文本
+   */
+  private async getSexText(sex: string | undefined): Promise<string> {
+    // 从字典表中获取性别文本
+    const sexDict = await this.dictService.getDictDataByType('sys_user_sex');
+    const list = sexDict.filter(item => item.dictValue === sex);
+    return list.length > 0 ? list[0].dictLabel : '';
+  }
 }

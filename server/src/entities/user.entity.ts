@@ -10,9 +10,9 @@ import { UserRole } from './user-role.entity';
 import { UserPost } from './user-post.entity';
 
 export enum UserSex {
-  MALE = '0',
-  FEMALE = '1',
-  UNKNOWN = '2',
+  '男' = '0',
+  '女' = '1',
+  '未知' = '2',
 }
 
 @Entity('sys_user')
@@ -54,7 +54,7 @@ export class User {
   @Column({
     type: 'char',
     length: 1,
-    default: UserSex.MALE,
+    default: UserSex.男,
     comment: '用户性别（0男 1女 2未知）',
   })
   sex: UserSex;

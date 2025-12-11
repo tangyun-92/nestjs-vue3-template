@@ -14,9 +14,10 @@ import { UserRoleController } from "./user-role.controller";
 import { UserPostController } from "./user-post.controller";
 import { AuthModule } from "../auth/auth.module";
 import { DeptModule } from "../dept/dept.module";
+import { DictModule } from "../dict/dict.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserRole, UserPost, Role, Post, Dept]), AuthModule, DeptModule],
+  imports: [TypeOrmModule.forFeature([User, UserRole, UserPost, Role, Post, Dept]), AuthModule, DeptModule, DictModule],
   controllers: [UserController, UserRoleController, UserPostController],
   providers: [UserService, UserRoleService, UserPostService],
   exports: [UserService, UserRoleService, UserPostService],

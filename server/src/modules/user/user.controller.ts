@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Put, Delete, Param, Query, UseGuards, Inject, Request, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Post, Put, Delete, Param, Query, UseGuards, Inject, Request, UnauthorizedException, Res, Headers } from "@nestjs/common";
 import type {
   CreateUserDto,
   QueryUserDto,
@@ -13,6 +13,7 @@ import { UserService } from "./user.service";
 import { DeptService } from "../dept/dept.service";
 import { ResponseWrapper } from "src/common/response.wrapper";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import type{ Response } from 'express';
 
 @UseGuards(JwtAuthGuard)
 @Controller('system/user')
@@ -60,7 +61,6 @@ export class UserController {
    */
   @Get('role/allRoleList')
   async allRoleList() {
-    console.log('方法执行了啊')
     const roles = await this.userService.findAllRoleList();
     return ResponseWrapper.success(roles, '获取角色列表成功');
   }
@@ -75,6 +75,29 @@ export class UserController {
     const ids = userIds ? userIds.split(',').map((id) => +id) : [];
     const users = await this.userService.findOptionsByIds(ids);
     return ResponseWrapper.success(users, '查询成功');
+  }
+
+  /**
+   * 导出用户列表
+   * @param query 查询参数
+   */
+  @Post('export')
+  async export(
+    @Body() query: QueryUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const buffer = await this.userService.exportUsers(query);
+
+    // 设置响应头
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=users_${timestamp}.xlsx`,
+      'Content-Length': buffer.length.toString(),
+    });
+
+    // 返回文件流
+    res.send(buffer);
   }
 
   /**
