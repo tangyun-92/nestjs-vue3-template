@@ -46,7 +46,7 @@ export class UserService {
       status,
       deptId,
       roleId,
-      page = 1,
+      pageNum = 1,
       pageSize = 10,
     } = queryUserDto;
 
@@ -95,7 +95,7 @@ export class UserService {
     const total = await queryBuilder.getCount();
     const users = await queryBuilder
       .orderBy('user.createTime', 'DESC')
-      .skip((page - 1) * pageSize)
+      .skip((pageNum - 1) * pageSize)
       .take(pageSize)
       .getMany();
 
@@ -528,7 +528,7 @@ export class UserService {
       status: status || GlobalStatus.ACTIVE,
       remark,
       deptId,
-      delFlag: '1', // 正常状态
+      delFlag: '0', // 正常状态
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -565,8 +565,8 @@ export class UserService {
     // 获取所有用户数据（不分页）
     const { users } = await this.findAll({
       ...queryUserDto,
-      page: 1,
-      pageSize: 100000, // 设置一个很大的数来获取所有数据
+      // page: 1,
+      // pageSize: 100000, // 设置一个很大的数来获取所有数据
     });
 
     // 定义列

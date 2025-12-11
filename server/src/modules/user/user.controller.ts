@@ -41,7 +41,7 @@ export class UserController {
         return userWithoutPassword;
       }),
       result.total,
-      query.page || 1,
+      query.pageNum || 1,
       query.pageSize || 10,
       '获取用户列表成功',
     );

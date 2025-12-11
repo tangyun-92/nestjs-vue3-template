@@ -9,7 +9,7 @@ export interface QueryUserDto {
   deptId?: number;
   roleId?: number;
   userIds?: string | number | (string | number)[];
-  page?: number;
+  pageNum?: number;
   pageSize?: number;
 }
 
