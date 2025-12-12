@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between, In } from 'typeorm';
 import { Role } from '../../entities/role.entity';
+import { UserRole } from '../../entities/user-role.entity';
 import { QueryRoleDto, CreateRoleDto, UpdateRoleDto, DataScope } from './dto/role.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
 import { RoleMenuService } from './role-menu.service';
@@ -11,6 +12,8 @@ export class RoleService {
   constructor(
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
+    @InjectRepository(UserRole)
+    private userRoleRepository: Repository<UserRole>,
     private roleMenuService: RoleMenuService,
   ) {}
 
@@ -157,7 +160,7 @@ export class RoleService {
    * @returns 更新后的角色信息
    */
   async update(updateRoleDto: UpdateRoleDto) {
-    const { roleId } = updateRoleDto;
+    const { roleId, menuIds, deptIds, ...roleData } = updateRoleDto;
 
     // 检查角色是否存在
     const existRole = await this.roleRepository.findOne({
@@ -169,12 +172,11 @@ export class RoleService {
     }
 
     // 检查角色名称是否已被其他角色使用
-    if (updateRoleDto.roleName && updateRoleDto.roleName !== existRole.roleName) {
+    if (roleData.roleName && roleData.roleName !== existRole.roleName) {
       const nameExistRole = await this.roleRepository.findOne({
         where: {
-          roleName: updateRoleDto.roleName,
+          roleName: roleData.roleName,
           delFlag: '0',
-          roleId: In([roleId])
         },
       });
 
@@ -184,12 +186,11 @@ export class RoleService {
     }
 
     // 检查角色权限字符串是否已被其他角色使用
-    if (updateRoleDto.roleKey && updateRoleDto.roleKey !== existRole.roleKey) {
+    if (roleData.roleKey && roleData.roleKey !== existRole.roleKey) {
       const keyExistRole = await this.roleRepository.findOne({
         where: {
-          roleKey: updateRoleDto.roleKey,
+          roleKey: roleData.roleKey,
           delFlag: '0',
-          roleId: In([roleId])
         },
       });
 
@@ -198,8 +199,18 @@ export class RoleService {
       }
     }
 
-    // 更新角色
-    await this.roleRepository.update(roleId, updateRoleDto);
+    // 更新角色基本信息
+    await this.roleRepository.update(roleId, roleData);
+
+    // 更新菜单关联
+    if (menuIds !== undefined) {
+      await this.roleMenuService.assignMenusToRole(roleId, menuIds);
+    }
+
+    // TODO: 更新部门关联
+    // if (deptIds !== undefined) {
+    //   await this.roleDeptService.assignDeptsToRole(roleId, deptIds);
+    // }
 
     // 返回更新后的角色
     const updatedRole = await this.roleRepository.findOne({
@@ -228,13 +239,18 @@ export class RoleService {
       throw new UnauthorizedException('角色不存在');
     }
 
-    // TODO: 检查角色是否已分配给用户
-    // for (const role of roles) {
-    //   const userCount = await this.checkRoleAssignedToUsers(role.roleId);
-    //   if (userCount > 0) {
-    //     throw new Error(`角色"${role.roleName}"已分配给用户，不能删除`);
-    //   }
-    // }
+    // 删除角色菜单关系
+    ids.forEach(async (roleId) => {
+      await this.roleMenuService.removeAllMenusFromRole(roleId);
+    });
+
+    // 检查角色是否已分配给用户
+    for (const role of roles) {
+      const userCount = await this.checkRoleAssignedToUsers(role.roleId);
+      if (userCount > 0) {
+        throw new UnauthorizedException(`角色"${role.roleName}"已分配给用户，不能删除`);
+      }
+    }
 
     // 逻辑删除（软删除）
     await this.roleRepository.update(ids, { delFlag: '1' });
@@ -256,6 +272,20 @@ export class RoleService {
 
     await this.roleRepository.update(roleId, { status });
     return ResponseWrapper.success(null, '状态更新成功');
+  }
+
+  /**
+   * 检查角色是否已分配给用户
+   * @param roleId 角色ID
+   * @returns 分配给该角色的用户数量
+   */
+  async checkRoleAssignedToUsers(roleId: number): Promise<number> {
+    const count = await this.userRoleRepository.count({
+      where: {
+        roleId,
+      },
+    });
+    return count;
   }
 
   /**
