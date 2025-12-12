@@ -10,7 +10,7 @@ import {
   AssignRoleDto,
   UserDetailResponse
 } from './dto/user.dto';
-import { In, Repository, Like } from 'typeorm';
+import { In, Repository, Like, Between, Brackets } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcryptjs';
 import { GlobalStatus } from 'src/types/global.types';
@@ -74,6 +74,19 @@ export class UserService {
       queryBuilder.andWhere('user.status = :status', { status });
     }
 
+    // 处理时间范围查询
+    const beginTime = queryUserDto['params[beginTime]'];
+    const endTime = queryUserDto['params[endTime]'];
+
+    // 添加创建时间范围查询
+    if (beginTime) {
+      queryBuilder.andWhere('user.createTime >= :beginTime', { beginTime });
+    }
+
+    if (endTime) {
+      queryBuilder.andWhere('user.createTime <= :endTime', { endTime });
+    }
+
     if (deptId) {
       // 获取该部门及其所有子部门的ID
       const childDepts = await this.deptService.findChildDepts(deptId);
@@ -122,8 +135,8 @@ export class UserService {
       ...user,
       deptId: +user.deptId,
       deptName: deptMap.get(+user.deptId) || '',
-      createTime: user.createTime?.toISOString(),
-      updateTime: user.updateTime?.toISOString(),
+      createTime: user.createTime ? new Date(user.createTime).toLocaleString('sv-SE').replace(' ', ' ') : '',
+      updateTime: user.updateTime ? new Date(user.updateTime).toLocaleString('sv-SE').replace(' ', ' ') : '',
     }));
 
     return {
