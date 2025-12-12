@@ -66,6 +66,7 @@
         border
         @selection-change="handleSelectionChange"
         @sort-change="handleSortChange"
+        style="width: 100%"
       >
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="访问编号" align="center" prop="infoId" />

@@ -69,6 +69,7 @@
         :default-sort="defaultSort"
         @selection-change="handleSelectionChange"
         @sort-change="handleSortChange"
+        style="width: 100%"
       >
         <el-table-column type="selection" width="50" align="center" />
         <el-table-column label="日志编号" align="center" prop="operId" />

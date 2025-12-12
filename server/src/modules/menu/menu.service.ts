@@ -210,7 +210,19 @@ export class MenuService {
    * @param menu 菜单数据
    * @returns 组件路径
    */
-  private getComponent(menu: Menu): string {
+  private getComponent(menu: any): string {
+    console.log('menu', menu);
+
+    // 一级菜单并且menu.menuType === 'M'并且有子菜单，返回Layout
+    if (menu.menuType === 'M' && Number(menu.parentId) === 0 && menu.children && menu.children.length > 0) {
+      return 'Layout';
+    }
+
+    // 二级菜单并且menu.menuType === 'M'并且有子菜单，返回ParentView
+    if (menu.menuType === 'M' && Number(menu.parentId) !== 0 && menu.children && menu.children.length > 0) {
+      return 'ParentView';
+    }
+
     if (menu.menuType === 'M') {
       return 'Layout';
     }
