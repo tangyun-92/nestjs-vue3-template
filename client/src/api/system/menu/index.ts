@@ -22,7 +22,7 @@ export const getMenu = (menuId: string | number): AxiosPromise<MenuVO> => {
 // 查询菜单下拉树结构
 export const treeselect = (): AxiosPromise<MenuTreeOption[]> => {
   return request({
-    url: '/system/menu/treeselect',
+    url: '/system/menu/tree/treeselect',
     method: 'get'
   });
 };

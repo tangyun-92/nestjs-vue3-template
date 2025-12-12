@@ -466,7 +466,10 @@ export class MenuService {
   async findMenuTree(): Promise<MenuTreeOptionDto[]> {
     const menus = await this.menuRepository.find({
       order: {
-        orderNum: 'ASC'
+        orderNum: 'ASC',
+      },
+      where: {
+        status: '0',
       }
     });
 
@@ -527,7 +530,7 @@ export class MenuService {
    */
   private buildTreeOptions(menus: Menu[], parentId: number = 0): MenuTreeOptionDto[] {
     return menus
-      .filter(menu => menu.parentId === parentId)
+      .filter(menu => +menu.parentId === +parentId)
       .map(menu => ({
         id: menu.menuId,
         label: menu.menuName,

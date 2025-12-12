@@ -69,7 +69,7 @@ export class MenuController {
   /**
    * 查询菜单下拉树结构
    */
-  @Get('treeselect')
+  @Get('tree/treeselect')
   async treeselect() {
     const menuTree = await this.menuService.findMenuTree();
     return ResponseWrapper.success(menuTree, '查询成功');
