@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Put, Delete, Param, Query, UseGuards, Inject, Request, UnauthorizedException, Res, Headers, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Post, Put, Delete, Param, Query, UseGuards, Inject, Request, UnauthorizedException, Res, Headers, UploadedFile, UseInterceptors, Req } from "@nestjs/common";
 import type {
   CreateUserDto,
   QueryUserDto,
@@ -95,7 +95,8 @@ export class UserController {
     // 设置响应头
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename=users_${timestamp}.xlsx`,
       'Content-Length': buffer.length.toString(),
     });
@@ -110,12 +111,18 @@ export class UserController {
   @Post('importTemplate')
   async importTemplate(@Res() res: Response) {
     // 运行时路径指向 dist，使用项目根目录定位模板
-    const templatePath = path.resolve(process.cwd(), 'src', 'templates', 'user_template.xlsx');
+    const templatePath = path.resolve(
+      process.cwd(),
+      'src',
+      'templates',
+      'user_template.xlsx',
+    );
 
     try {
       const stat = await fs.promises.stat(templatePath);
       res.set({
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Type':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': 'attachment; filename=user_template.xlsx',
         'Content-Length': stat.size,
       });
@@ -324,7 +331,7 @@ export class UserController {
    * @param assignRoleDto 角色分配DTO
    * @returns 操作结果
    */
-  @Put('authRole')
+  @Put('saveAuthRole')
   async saveAuthRole(@Body() assignRoleDto: AssignRoleDto) {
     await this.userService.assignRoles(assignRoleDto);
     return ResponseWrapper.success(null, '授权成功');

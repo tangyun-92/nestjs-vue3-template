@@ -116,8 +116,8 @@ const close = () => {
 /** 提交按钮 */
 const submitForm = async () => {
   const userId = form.value.userId;
-  const rIds = roleIds.value.join(',');
-  await updateAuthRole({ userId: userId as string, roleIds: rIds });
+  // const rIds = roleIds.value.join(',');
+  await updateAuthRole({ userId: userId as string, roleIds: roleIds.value });
   proxy?.$modal.msgSuccess('授权成功');
   close();
 };

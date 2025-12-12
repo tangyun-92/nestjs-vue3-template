@@ -169,23 +169,23 @@ export class UserService {
         createTime: user.createTime?.toISOString(),
         updateTime: user.updateTime?.toISOString(),
         deptName,
-        roles: roles.map(role => ({
+        roles: roles.map((role) => ({
           ...role,
           flag: false,
-          superAdmin: role.roleKey === 'superadmin'
+          superAdmin: role.roleKey === 'superadmin',
         })),
-        roleIds: roles.map(r => r.roleId),
-        postIds: posts.map(p => p.postId),
-        roleId: roles.length > 0 ? roles[0].roleId : undefined
+        roleIds: roles.map((r) => r.roleId),
+        postIds: posts.map((p) => p.postId),
+        roleId: roles.length > 0 ? roles[0].roleId : undefined,
       },
-      roleIds: roles.map(r => r.roleId),
-      roles: allRoles.map(role => ({
+      roleIds: roles.map((r) => r.roleId),
+      roles: allRoles.map((role) => ({
         ...role,
-        flag: roles.some(userRole => userRole.roleId === role.roleId),
-        superAdmin: role.roleKey === 'superadmin'
+        flag: roles.some((userRole) => userRole.roleId === role.roleId),
+        superAdmin: role.roleKey === 'superadmin',
       })),
-      postIds: posts.map(p => p.postId),
-      posts: posts
+      postIds: posts.map((p) => p.postId),
+      posts: posts,
     };
   }
 
@@ -199,7 +199,7 @@ export class UserService {
       const allRoles = await this.userRoleService.getAllRoles();
 
       // 手动序列化角色数据，避免 TypeORM 序列化问题
-      const serializedRoles = allRoles.map(role => ({
+      const serializedRoles = allRoles.map((role) => ({
         roleId: role.roleId,
         roleName: role.roleName,
         roleKey: role.roleKey,
@@ -216,7 +216,7 @@ export class UserService {
         updateTime: role.updateTime?.toISOString() || null,
         remark: role.remark || '',
         flag: false,
-        superAdmin: role.roleKey === 'superadmin'
+        superAdmin: role.roleKey === 'superadmin',
       }));
 
       return {
@@ -224,7 +224,7 @@ export class UserService {
         postIds: null,
         roleIds: null,
         posts: null,
-        roles: serializedRoles
+        roles: serializedRoles,
       };
     } catch (error) {
       console.error('获取所有角色列表失败:', error);
@@ -242,7 +242,7 @@ export class UserService {
       where: { userId: In(userIds) },
     });
 
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
       createTime: user.createTime?.toISOString(),
       updateTime: user.updateTime?.toISOString(),
@@ -278,16 +278,30 @@ export class UserService {
 
     // 基本信息
     if (updateUserDto.deptId !== undefined) {
-      updateData.deptId = typeof updateUserDto.deptId === 'string' ? parseInt(updateUserDto.deptId) : updateUserDto.deptId;
+      updateData.deptId =
+        typeof updateUserDto.deptId === 'string'
+          ? parseInt(updateUserDto.deptId)
+          : updateUserDto.deptId;
     }
-    if (updateUserDto.userName !== undefined) updateData.userName = updateUserDto.userName;
-    if (updateUserDto.nickName !== undefined) updateData.nickName = updateUserDto.nickName;
-    if (updateUserDto.phonenumber !== undefined) updateData.phonenumber = updateUserDto.phonenumber;
-    if (updateUserDto.email !== undefined) updateData.email = updateUserDto.email;
-    if (updateUserDto.sex !== undefined) updateData.sex = typeof updateUserDto.sex === 'string' ? updateUserDto.sex : updateUserDto.sex.toString();
-    if (updateUserDto.status !== undefined) updateData.status = updateUserDto.status;
-    if (updateUserDto.remark !== undefined) updateData.remark = updateUserDto.remark;
-    if (updateUserDto.avatar !== undefined) updateData.avatar = updateUserDto.avatar;
+    if (updateUserDto.userName !== undefined)
+      updateData.userName = updateUserDto.userName;
+    if (updateUserDto.nickName !== undefined)
+      updateData.nickName = updateUserDto.nickName;
+    if (updateUserDto.phonenumber !== undefined)
+      updateData.phonenumber = updateUserDto.phonenumber;
+    if (updateUserDto.email !== undefined)
+      updateData.email = updateUserDto.email;
+    if (updateUserDto.sex !== undefined)
+      updateData.sex =
+        typeof updateUserDto.sex === 'string'
+          ? updateUserDto.sex
+          : updateUserDto.sex.toString();
+    if (updateUserDto.status !== undefined)
+      updateData.status = updateUserDto.status;
+    if (updateUserDto.remark !== undefined)
+      updateData.remark = updateUserDto.remark;
+    if (updateUserDto.avatar !== undefined)
+      updateData.avatar = updateUserDto.avatar;
 
     // 如果有密码且不为空，则更新密码
     if (updateUserDto.password && updateUserDto.password.trim() !== '') {
@@ -299,13 +313,17 @@ export class UserService {
 
     // 更新角色关联
     if (updateUserDto.roleIds !== undefined && updateUserDto.roleIds !== null) {
-      const roleIds = updateUserDto.roleIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id));
+      const roleIds = updateUserDto.roleIds
+        .map((id) => (typeof id === 'string' ? parseInt(id) : id))
+        .filter((id) => !isNaN(id));
       await this.userRoleService.updateUserRoles(updateUserDto.userId, roleIds);
     }
 
     // 更新岗位关联
     if (updateUserDto.postIds !== undefined && updateUserDto.postIds !== null) {
-      const postIds = updateUserDto.postIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id));
+      const postIds = updateUserDto.postIds
+        .map((id) => (typeof id === 'string' ? parseInt(id) : id))
+        .filter((id) => !isNaN(id));
       await this.userPostService.updateUserPosts(updateUserDto.userId, postIds);
     }
 
@@ -370,7 +388,10 @@ export class UserService {
    * @param userId 用户ID
    * @param updatePasswordDto 密码更新DTO
    */
-  async updatePassword(userId: number, updatePasswordDto: UpdatePasswordDto): Promise<void> {
+  async updatePassword(
+    userId: number,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({
       where: { userId },
     });
@@ -382,7 +403,7 @@ export class UserService {
     // 验证旧密码
     const isOldPasswordValid = await bcrypt.compare(
       updatePasswordDto.oldPassword,
-      user.password
+      user.password,
     );
 
     if (!isOldPasswordValid) {
@@ -392,7 +413,7 @@ export class UserService {
     // 加密新密码
     const hashedNewPassword = await bcrypt.hash(
       updatePasswordDto.newPassword,
-      10
+      10,
     );
 
     // 更新密码
@@ -437,7 +458,10 @@ export class UserService {
     }
 
     // 不能禁用管理员
-    if (user.userName === 'admin' && changeStatusDto.status === GlobalStatus.DISABLED) {
+    if (
+      user.userName === 'admin' &&
+      changeStatusDto.status === GlobalStatus.DISABLED
+    ) {
       throw new BadRequestException('不能禁用管理员用户');
     }
 
@@ -466,7 +490,7 @@ export class UserService {
 
     await this.userRoleService.updateUserRoles(
       assignRoleDto.userId,
-      assignRoleDto.roleIds
+      assignRoleDto.roleIds,
     );
   }
 
@@ -481,7 +505,7 @@ export class UserService {
       order: { createTime: 'DESC' },
     });
 
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
       createTime: user.createTime?.toISOString(),
       updateTime: user.updateTime?.toISOString(),
@@ -535,18 +559,12 @@ export class UserService {
 
     // 分配角色
     if (roleIds && roleIds.length > 0) {
-      await this.userRoleService.updateUserRoles(
-        savedUser.userId,
-        roleIds
-      );
+      await this.userRoleService.updateUserRoles(savedUser.userId, roleIds);
     }
 
     // 分配岗位
     if (postIds && postIds.length > 0) {
-      await this.userPostService.updateUserPosts(
-        savedUser.userId,
-        postIds
-      );
+      await this.userPostService.updateUserPosts(savedUser.userId, postIds);
     }
 
     return {
@@ -586,7 +604,7 @@ export class UserService {
 
     // 先并行获取所有用户的性别文本
     const sexTexts = await Promise.all(
-      users.map(user => this.getSexText(user.sex))
+      users.map((user) => this.getSexText(user.sex)),
     );
 
     // 准备数据
@@ -616,7 +634,7 @@ export class UserService {
   private async getSexText(sex: string | undefined): Promise<string> {
     // 从字典表中获取性别文本
     const sexDict = await this.dictService.getDictDataByType('sys_user_sex');
-    const list = sexDict.filter(item => item.dictValue === sex);
+    const list = sexDict.filter((item) => item.dictValue === sex);
     return list.length > 0 ? list[0].dictLabel : '';
   }
 
@@ -625,17 +643,21 @@ export class UserService {
    * @param fileBuffer 上传的文件 buffer
    * @param updateSupport 是否允许更新已存在用户
    */
-  async importUsersFromExcel(fileBuffer: Buffer, updateSupport: boolean): Promise<{
+  async importUsersFromExcel(
+    fileBuffer: Buffer,
+    updateSupport: boolean,
+  ): Promise<{
     count: number;
     details: string[];
   }> {
     // 获取字典数据
     const sexDict = await this.dictService.getDictDataByType('sys_user_sex');
-    const statusDict = await this.dictService.getDictDataByType('sys_normal_disable');
+    const statusDict =
+      await this.dictService.getDictDataByType('sys_normal_disable');
     const sexMap = new Map<string, string>();
     const statusMap = new Map<string, string>();
-    sexDict.forEach(item => sexMap.set(item.dictLabel, item.dictValue));
-    statusDict.forEach(item => statusMap.set(item.dictLabel, item.dictValue));
+    sexDict.forEach((item) => sexMap.set(item.dictLabel, item.dictValue));
+    statusDict.forEach((item) => statusMap.set(item.dictLabel, item.dictValue));
 
     const mapSex = (label: string): string => {
       if (!label) return '2';
@@ -647,79 +669,78 @@ export class UserService {
     };
 
     // 使用通用导入方法
-    const result = await importFromExcel(
-      fileBuffer,
-      async (rowData, index) => {
-        const userName = rowData['用户名称'];
+    const result = await importFromExcel(fileBuffer, async (rowData, index) => {
+      const userName = rowData['用户名称'];
 
-        // 如果用户名为空，跳过
-        if (!userName) {
+      // 如果用户名为空，跳过
+      if (!userName) {
+        return { action: 'skip' };
+      }
+
+      // 提取数据
+      const userId = rowData['用户编号'];
+      const nickName = rowData['用户昵称'];
+      const deptIdStr = rowData['部门'];
+      const phonenumber = rowData['手机号码'];
+      const email = rowData['邮箱'];
+      const sexLabel = rowData['性别'];
+      const statusLabel = rowData['状态'];
+      const remark = rowData['备注'];
+
+      const sex = mapSex(sexLabel);
+      const status = mapStatus(statusLabel);
+      const deptId = deptIdStr ? Number(deptIdStr) : undefined;
+
+      // 检查用户是否已存在
+      const existing = await this.userRepository.findOne({
+        where: { userName },
+      });
+
+      if (existing) {
+        // 如果不允许更新，跳过
+        if (!updateSupport) {
           return { action: 'skip' };
         }
 
-        // 提取数据
-        const userId = rowData['用户编号'];
-        const nickName = rowData['用户昵称'];
-        const deptIdStr = rowData['部门'];
-        const phonenumber = rowData['手机号码'];
-        const email = rowData['邮箱'];
-        const sexLabel = rowData['性别'];
-        const statusLabel = rowData['状态'];
-        const remark = rowData['备注'];
+        // 更新用户
+        await this.userRepository.update(existing.userId, {
+          nickName,
+          phonenumber,
+          email,
+          deptId,
+          sex: sex as any,
+          status,
+          remark,
+        });
 
-        const sex = mapSex(sexLabel);
-        const status = mapStatus(statusLabel);
-        const deptId = deptIdStr ? Number(deptIdStr) : undefined;
+        return {
+          action: 'update',
+          message: `账号 ${userName} 更新成功`,
+        };
+      } else {
+        // 创建新用户
+        const password = await bcrypt.hash('123456', 10);
+        const newUser = this.userRepository.create({
+          userId: userId ? Number(userId) : undefined,
+          userName,
+          password,
+          nickName,
+          phonenumber,
+          email,
+          deptId,
+          sex: sex as any,
+          status,
+          remark,
+          delFlag: '0',
+        });
+        await this.userRepository.save(newUser);
 
-        // 检查用户是否已存在
-        const existing = await this.userRepository.findOne({ where: { userName } });
-
-        if (existing) {
-          // 如果不允许更新，跳过
-          if (!updateSupport) {
-            return { action: 'skip' };
-          }
-
-          // 更新用户
-          await this.userRepository.update(existing.userId, {
-            nickName,
-            phonenumber,
-            email,
-            deptId,
-            sex: sex as any,
-            status,
-            remark,
-          });
-
-          return {
-            action: 'update',
-            message: `账号 ${userName} 更新成功`,
-          };
-        } else {
-          // 创建新用户
-          const password = await bcrypt.hash('123456', 10);
-          const newUser = this.userRepository.create({
-            userId: userId ? Number(userId) : undefined,
-            userName,
-            password,
-            nickName,
-            phonenumber,
-            email,
-            deptId,
-            sex: sex as any,
-            status,
-            remark,
-            delFlag: '0',
-          });
-          await this.userRepository.save(newUser);
-
-          return {
-            action: 'create',
-            message: `账号 ${userName} 导入成功`,
-          };
-        }
+        return {
+          action: 'create',
+          message: `账号 ${userName} 导入成功`,
+        };
       }
-    );
+    });
 
     return {
       count: result.count,

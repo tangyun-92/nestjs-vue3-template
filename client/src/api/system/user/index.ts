@@ -190,11 +190,11 @@ export const getAuthRole = (userId: string | number): AxiosPromise<{ user: UserV
  * 保存授权角色
  * @param data 用户ID
  */
-export const updateAuthRole = (data: { userId: string; roleIds: string }) => {
+export const updateAuthRole = (data: { userId: string; roleIds: number[] }) => {
   return request({
-    url: '/system/user/authRole',
+    url: '/system/user/saveAuthRole',
     method: 'put',
-    params: data
+    data
   });
 };
 
