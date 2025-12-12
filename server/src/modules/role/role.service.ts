@@ -139,6 +139,15 @@ export class RoleService {
     });
 
     const savedRole = await this.roleRepository.save(role);
+
+    // 添加角色菜单关联
+    if (createRoleDto.menuIds && createRoleDto.menuIds.length > 0) {
+      await this.roleMenuService.assignMenusToRole(
+        savedRole.roleId,
+        createRoleDto.menuIds,
+      );
+    }
+
     return savedRole;
   }
 

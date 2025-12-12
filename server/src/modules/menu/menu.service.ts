@@ -486,6 +486,9 @@ export class MenuService {
     const menus = await this.menuRepository.find({
       order: {
         orderNum: 'ASC'
+      },
+      where: {
+        status: '0',
       }
     });
 
