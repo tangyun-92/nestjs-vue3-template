@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { RoleService } from './role.service';
 import type { QueryRoleDto, CreateRoleDto, UpdateRoleDto } from './dto/role.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { Response } from 'express';
 
 @UseGuards(JwtAuthGuard)
 @Controller('system/role')
@@ -109,11 +110,24 @@ export class RoleController {
   /**
    * 导出角色
    * @param query 查询参数
-   * @returns 导出的角色数据
    */
   @Post('export')
-  async export(@Body() query: QueryRoleDto) {
-    const roles = await this.roleService.export(query);
-    return ResponseWrapper.success(roles, '导出成功');
+  async export(
+    @Body() query: QueryRoleDto,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const buffer = await this.roleService.exportRoles(query);
+
+    // 设置响应头
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=users_${timestamp}.xlsx`,
+      'Content-Length': buffer.length.toString(),
+    });
+
+    // 返回文件流
+    res.send(buffer);
   }
 }

@@ -6,6 +6,7 @@ import { UserRole } from '../../entities/user-role.entity';
 import { QueryRoleDto, CreateRoleDto, UpdateRoleDto, DataScope } from './dto/role.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
 import { RoleMenuService } from './role-menu.service';
+import { ExcelColumn, exportToExcel } from 'src/utils/excel';
 
 @Injectable()
 export class RoleService {
@@ -23,16 +24,10 @@ export class RoleService {
    * @returns 角色列表
    */
   async findAll(query: QueryRoleDto) {
-    const {
-      pageNum = 1,
-      pageSize = 10,
-      roleName,
-      roleKey,
-      status,
-    } = query;
+    const { pageNum = 1, pageSize = 10, roleName, roleKey, status } = query;
 
     const where: any = {
-      delFlag: '0'  // 只查询未删除的角色
+      delFlag: '0', // 只查询未删除的角色
     };
 
     if (roleName) {
@@ -51,10 +46,7 @@ export class RoleService {
     const beginTime = query['params[beginTime]'];
     const endTime = query['params[endTime]'];
     if (beginTime && endTime) {
-      where.createTime = Between(
-        new Date(beginTime),
-        new Date(endTime),
-      );
+      where.createTime = Between(new Date(beginTime), new Date(endTime));
     }
 
     const [roles, total] = await this.roleRepository.findAndCount({
@@ -113,7 +105,7 @@ export class RoleService {
     const existRole = await this.roleRepository.findOne({
       where: {
         roleName: createRoleDto.roleName,
-        delFlag: '0'
+        delFlag: '0',
       },
     });
 
@@ -125,7 +117,7 @@ export class RoleService {
     const existKeyRole = await this.roleRepository.findOne({
       where: {
         roleKey: createRoleDto.roleKey,
-        delFlag: '0'
+        delFlag: '0',
       },
     });
 
@@ -248,7 +240,9 @@ export class RoleService {
     for (const role of roles) {
       const userCount = await this.checkRoleAssignedToUsers(role.roleId);
       if (userCount > 0) {
-        throw new UnauthorizedException(`角色"${role.roleName}"已分配给用户，不能删除`);
+        throw new UnauthorizedException(
+          `角色"${role.roleName}"已分配给用户，不能删除`,
+        );
       }
     }
 
@@ -311,17 +305,40 @@ export class RoleService {
   }
 
   /**
-   * 导出角色数据
+   * 导出角色数据 Excel
    * @param query 查询参数
-   * @returns 导出的角色数据
+   * @returns Excel buffer
    */
-  async export(query: QueryRoleDto) {
+  async exportRoles(queryUserDto: QueryRoleDto) {
     const { roles } = await this.findAll({
-      ...query,
-      pageNum: 1,
-      pageSize: 9999, // 导出全部数据
+      ...queryUserDto,
     });
 
-    return roles;
+    // 定义列
+    const columns: ExcelColumn[] = [
+      { header: '角色ID', key: 'roleId', width: 10 },
+      { header: '角色名称', key: 'roleName', width: 30 },
+      { header: '权限字符', key: 'roleKey', width: 20 },
+      { header: '状态', key: 'status', width: 10 },
+      { header: '创建时间', key: 'createTime', width: 20 },
+      { header: '备注', key: 'remark', width: 30 },
+    ];
+
+    const data = roles.map((role) => ({
+      roleId: role.roleId,
+      roleName: role.roleName,
+      roleKey: role.roleKey,
+      status: role.status === '0' ? '正常' : '停用',
+      createTime: role.createTime || '',
+      remark: role.remark,
+    }));
+
+    // 按照roleId排序
+    data.sort((a, b) => a.roleId - b.roleId);
+
+    // 使用 Excel 工具函数导出
+    return exportToExcel(columns, data, {
+      sheetName: '角色列表',
+    });
   }
 }

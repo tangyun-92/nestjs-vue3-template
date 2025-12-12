@@ -620,7 +620,7 @@ export class UserService {
       users.map((user) => this.getSexText(user.sex)),
     );
 
-    // 准备数据
+    // 准备数据,需要按照roleId排序
     const data = users.map((user, index) => ({
       userId: user.userId,
       userName: user.userName || '',
@@ -634,6 +634,8 @@ export class UserService {
       createTime: user.createTime || '',
       remark: user.remark || '',
     }));
+
+    data.sort((a: any, b: any) => a.userId - b.userId)
 
     // 使用 Excel 工具函数导出
     return exportToExcel(columns, data, {
