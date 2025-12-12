@@ -27,7 +27,7 @@ export class UserRoleService {
       relations: ['role'],
     });
 
-    return userRoles.map(ur => ur.role);
+    return userRoles.map((ur) => ur.role);
   }
 
   /**
@@ -65,9 +65,55 @@ export class UserRoleService {
 
     // 如果有要分配的角色，则创建新的关联
     if (roleIds && roleIds.length > 0) {
-      const userRoles = roleIds.map(roleId => ({
+      const userRoles = roleIds.map((roleId) => ({
         userId,
         roleId,
+      }));
+
+      await this.userRoleRepository.save(userRoles);
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * 分配用户给角色
+   * @param userIds 用户ID数组
+   * @param roleId 角色ID
+   */
+  async assignUsersToRole(roleId: number, userIds: number[]): Promise<any> {
+    // 检查角色是否存在
+    const role = await this.roleRepository.findOne({
+      where: { roleId },
+    });
+
+    if (!role) {
+      throw new UnauthorizedException('角色不存在');
+    }
+
+    // 检查所有用户是否存在
+    if (userIds && userIds.length > 0) {
+      const users = await this.userRepository.find({
+        where: {
+          userId: In(userIds),
+          delFlag: '0',
+          status: '0',
+        },
+      });
+
+      if (users.length !== userIds.length) {
+        throw new UnauthorizedException('部分角色不存在或已停用');
+      }
+    }
+
+    // 先删除用户现有的所有角色
+    // await this.userRoleRepository.delete({ roleId });
+
+    // 如果有要分配的角色，则创建新的关联
+    if (userIds && userIds.length > 0) {
+      const userRoles = userIds.map((userId) => ({
+        roleId,
+        userId,
       }));
 
       await this.userRoleRepository.save(userRoles);
@@ -87,7 +133,7 @@ export class UserRoleService {
       relations: ['user'],
     });
 
-    return userRoles.map(ur => ur.user);
+    return userRoles.map((ur) => ur.user);
   }
 
   /**
@@ -181,7 +227,7 @@ export class UserRoleService {
    */
   async deleteUserRoles(userIds: number[]) {
     await this.userRoleRepository.delete({
-      userId: In(userIds)
+      userId: In(userIds),
     });
   }
 
@@ -225,7 +271,7 @@ export class UserRoleService {
       relations: ['role'],
     });
 
-    return userRoles.some(ur => ur.role.roleKey === roleKey);
+    return userRoles.some((ur) => ur.role.roleKey === roleKey);
   }
 
   /**
@@ -239,7 +285,7 @@ export class UserRoleService {
       relations: ['role'],
     });
 
-    return userRoles.map(ur => ur.role.roleKey);
+    return userRoles.map((ur) => ur.role.roleKey);
   }
 
   /**
@@ -249,11 +295,11 @@ export class UserRoleService {
   async getAllRoles() {
     return await this.roleRepository.find({
       where: {
-        delFlag: '0'
+        delFlag: '0',
       },
       order: {
-        roleSort: 'ASC'
-      }
+        roleSort: 'ASC',
+      },
     });
   }
 }

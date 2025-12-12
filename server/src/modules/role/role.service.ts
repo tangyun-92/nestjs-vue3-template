@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between, In } from 'typeorm';
 import { Role } from '../../entities/role.entity';
 import { UserRole } from '../../entities/user-role.entity';
+import { User } from '../../entities/user.entity';
 import { QueryRoleDto, CreateRoleDto, UpdateRoleDto, DataScope } from './dto/role.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
 import { RoleMenuService } from './role-menu.service';
@@ -15,6 +16,8 @@ export class RoleService {
     private roleRepository: Repository<Role>,
     @InjectRepository(UserRole)
     private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private roleMenuService: RoleMenuService,
   ) {}
 
@@ -340,5 +343,144 @@ export class RoleService {
     return exportToExcel(columns, data, {
       sheetName: '角色列表',
     });
+  }
+
+  /**
+   * 查询已分配角色的用户列表
+   * @param query 查询参数，包含 pageNum, pageSize, roleId
+   * @returns 用户列表和总数
+   */
+  async findAllocatedUserList(query: { pageNum: number; pageSize: number; roleId: number, userName?: string, phonenumber?: string }) {
+    const { pageNum = 1, pageSize = 10, roleId, userName, phonenumber } = query;
+
+    // 创建查询构建器
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.userRoles', 'ur')
+      .where('ur.roleId = :roleId', { roleId })
+      .andWhere('user.delFlag = :delFlag', { delFlag: '0' });
+
+    // 添加用户名查询条件
+    if (userName) {
+      queryBuilder.andWhere('user.userName LIKE :userName', { userName: `%${userName}%` });
+    }
+
+    // 添加手机号码查询条件
+    if (phonenumber) {
+      queryBuilder.andWhere('user.phonenumber LIKE :phonenumber', { phonenumber: `%${phonenumber}%` });
+    }
+
+    // 获取总数
+    const total = await queryBuilder.getCount();
+
+    // 获取分页数据
+    const users = await queryBuilder
+      .orderBy('user.createTime', 'DESC')
+      .skip((pageNum - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    // 格式化返回数据
+    const formattedUsers = users.map((user) => ({
+      ...user,
+      deptId: user.deptId ? +user.deptId : null,
+      createTime: user.createTime ? new Date(user.createTime).toLocaleString('sv-SE').replace(' ', ' ') : '',
+      updateTime: user.updateTime ? new Date(user.updateTime).toLocaleString('sv-SE').replace(' ', ' ') : '',
+    }));
+
+    return {
+      total,
+      users: formattedUsers,
+    };
+  }
+
+  /**
+   * 取消分配用户
+   * @param roleId 角色ID
+   * @param userIds 用户ID数组
+   * @returns 取消分配结果
+   */
+  async cancelAllocatedUser(roleId: number, userIds: number[]) {
+    // 检查角色是否存在
+    const role = await this.roleRepository.findOne({
+      where: { roleId, delFlag: '0' }
+    });
+
+    if (!role) {
+      throw new UnauthorizedException('角色不存在');
+    }
+
+    // 删除用户角色关联
+    for (const userId of userIds) {
+      await this.userRoleRepository.delete({
+        userId,
+        roleId
+      });
+    }
+
+    return ResponseWrapper.success(null, '取消授权成功');
+  }
+
+  /**
+   * 查询未分配当前传入角色的用户列表
+   * @param query 查询参数
+   * @returns 取消授权结果
+   */
+  async findUnallocatedList(query: { pageNum: number; pageSize: number; roleId: number, userName?: string, phonenumber?: string }) {
+    const { pageNum, pageSize, roleId, userName, phonenumber } = query;
+
+    // 创建子查询，获取已经分配了当前角色的用户ID列表
+    const subQuery = this.userRoleRepository
+      .createQueryBuilder('ur')
+      .select('ur.userId')
+      .where('ur.roleId = :roleId', { roleId });
+
+    // 创建查询构建器,查询出没有分配当前角色的用户（包括没有分配任何角色的用户）
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .where(`user.userId NOT IN (${subQuery.getQuery()})`)
+      .andWhere('user.delFlag = :delFlag', { delFlag: '0' })
+      .setParameters(subQuery.getParameters());
+
+    // 添加用户名查询条件
+    if (userName) {
+      queryBuilder.andWhere('user.userName LIKE :userName', {
+        userName: `%${userName}%`,
+      });
+    }
+
+    // 添加手机号码查询条件
+    if (phonenumber) {
+      queryBuilder.andWhere('user.phonenumber LIKE :phonenumber', {
+        phonenumber: `%${phonenumber}%`,
+      });
+    }
+
+    // 获取总数
+    const total = await queryBuilder.getCount();
+
+    // 获取分页数据
+    const users = await queryBuilder
+      .orderBy('user.createTime', 'DESC')
+      .skip((pageNum - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    // 格式化返回数据
+    const formattedUsers = users.map((user) => ({
+      ...user,
+      deptId: user.deptId ? +user.deptId : null,
+      createTime: user.createTime
+        ? new Date(user.createTime).toLocaleString('sv-SE').replace(' ', ' ')
+        : '',
+      updateTime: user.updateTime
+        ? new Date(user.updateTime).toLocaleString('sv-SE').replace(' ', ' ')
+        : '',
+    }));
+
+    return {
+      total,
+      users: formattedUsers,
+    };
   }
 }

@@ -143,7 +143,7 @@ export const authUserSelectAll = (data: any) => {
   return request({
     url: '/system/role/authUser/selectAll',
     method: 'put',
-    params: data
+    data
   });
 };
 // 根据角色ID查询部门树结构

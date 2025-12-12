@@ -4,11 +4,15 @@ import type { QueryRoleDto, CreateRoleDto, UpdateRoleDto } from './dto/role.dto'
 import { ResponseWrapper } from '../../common/response.wrapper';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { Response } from 'express';
+import { UserRoleService } from '../user/user-role.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('system/role')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) {}
+  constructor(
+    private readonly roleService: RoleService,
+    private readonly userRoleService: UserRoleService,
+  ) {}
 
   /**
    * 获取角色分页列表
@@ -77,9 +81,7 @@ export class RoleController {
    * @returns 更新结果
    */
   @Put('changeStatus')
-  async changeStatus(
-    @Body() body: { roleId: number; status: string }
-  ) {
+  async changeStatus(@Body() body: { roleId: number; status: string }) {
     return await this.roleService.updateStatus(body.roleId, body.status);
   }
 
@@ -90,7 +92,7 @@ export class RoleController {
    */
   @Delete(':roleIds')
   async delete(@Param('roleIds') roleIds: string) {
-    const ids = roleIds.split(',').map(id => +id);
+    const ids = roleIds.split(',').map((id) => +id);
     await this.roleService.delete(ids);
     return ResponseWrapper.success(null, '删除成功');
   }
@@ -102,9 +104,13 @@ export class RoleController {
    */
   @Put('dataScope')
   async dataScope(
-    @Body() body: { roleId: number; dataScope: string; deptIds: number[] }
+    @Body() body: { roleId: number; dataScope: string; deptIds: number[] },
   ) {
-    return await this.roleService.dataScope(body.roleId, body.dataScope, body.deptIds);
+    return await this.roleService.dataScope(
+      body.roleId,
+      body.dataScope,
+      body.deptIds,
+    );
   }
 
   /**
@@ -114,7 +120,7 @@ export class RoleController {
   @Post('export')
   async export(
     @Body() query: QueryRoleDto,
-    @Res({ passthrough: true }) res: Response
+    @Res({ passthrough: true }) res: Response,
   ) {
     const buffer = await this.roleService.exportRoles(query);
 
@@ -129,5 +135,84 @@ export class RoleController {
 
     // 返回文件流
     res.send(buffer);
+  }
+
+  /**
+   * 查询已分配的用户列表
+   * @param query 查询参数
+   */
+  @Get('authUser/allocatedList')
+  async allocatedList(
+    @Query()
+    query: {
+      pageNum: number;
+      pageSize: number;
+      roleId: number;
+      userName: string;
+      phonenumber: string;
+    },
+  ) {
+    const result = await this.roleService.findAllocatedUserList(query);
+    return ResponseWrapper.successWithPagination(
+      result.users,
+      result.total,
+      query.pageNum || 1,
+      query.pageSize || 10,
+      '查询成功',
+    );
+  }
+
+  /**
+   * 取消分配用户
+   * @param body 取消分配用户
+   */
+  @Put('authUser/cancel')
+  async cancelAllocatedUser(
+    @Body() body: { roleId: number; userIds: number[] },
+  ) {
+    const result = await this.roleService.cancelAllocatedUser(
+      body.roleId,
+      body.userIds,
+    );
+    return result;
+  }
+
+  /**
+   * 未分配当前传入角色id的用户列表
+   * @param query 查询条件
+   */
+  @Get('authUser/unallocatedList')
+  async unallocatedList(
+    @Query()
+    query: {
+      pageNum: number;
+      pageSize: number;
+      userName?: string;
+      phonenumber?: string;
+      roleId: number;
+    },
+  ) {
+    const result = await this.roleService.findUnallocatedList(query);
+    return ResponseWrapper.successWithPagination(
+      result.users,
+      result.total,
+      query.pageNum || 1,
+      query.pageSize || 10,
+      '获取用户列表成功',
+    );
+  }
+
+  /**
+   * 分配用户给角色
+   * @param assignRoleDto
+   */
+  @Put('authUser/selectAll')
+  async assignUsersToRole(
+    @Body() assignRoleDto: { roleId: number; userIds: number[] },
+  ) {
+    await this.userRoleService.assignUsersToRole(
+      assignRoleDto.roleId,
+      assignRoleDto.userIds,
+    );
   }
 }

@@ -113,12 +113,12 @@ const emit = defineEmits(['ok']);
 /**选择授权用户操作 */
 const handleSelectUser = async () => {
   const roleId = queryParams.roleId;
-  const ids = userIds.value.join(',');
-  if (ids == '') {
+  // const ids = userIds.value.join(',');
+  if (userIds.value.length === 0) {
     proxy?.$modal.msgError('请选择要分配的用户');
     return;
   }
-  await authUserSelectAll({ roleId, userIds: ids });
+  await authUserSelectAll({ roleId, userIds: userIds.value });
   proxy?.$modal.msgSuccess('分配成功');
   emit('ok');
   visible.value = false;

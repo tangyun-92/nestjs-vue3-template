@@ -20,6 +20,7 @@ import { UserPostService } from './user-post.service';
 import { DeptService } from '../dept/dept.service';
 import { DictService } from '../dict/dict.service';
 import { exportToExcel, ExcelColumn, importFromExcel } from 'src/utils/excel';
+import { QueryRoleDto } from '../role/dto/role.dto';
 
 export class UserService {
   constructor(
@@ -135,8 +136,12 @@ export class UserService {
       ...user,
       deptId: +user.deptId,
       deptName: deptMap.get(+user.deptId) || '',
-      createTime: user.createTime ? new Date(user.createTime).toLocaleString('sv-SE').replace(' ', ' ') : '',
-      updateTime: user.updateTime ? new Date(user.updateTime).toLocaleString('sv-SE').replace(' ', ' ') : '',
+      createTime: user.createTime
+        ? new Date(user.createTime).toLocaleString('sv-SE').replace(' ', ' ')
+        : '',
+      updateTime: user.updateTime
+        ? new Date(user.updateTime).toLocaleString('sv-SE').replace(' ', ' ')
+        : '',
     }));
 
     return {
@@ -635,7 +640,7 @@ export class UserService {
       remark: user.remark || '',
     }));
 
-    data.sort((a: any, b: any) => a.userId - b.userId)
+    data.sort((a: any, b: any) => a.userId - b.userId);
 
     // 使用 Excel 工具函数导出
     return exportToExcel(columns, data, {

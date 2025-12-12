@@ -138,16 +138,16 @@ const openSelectUser = () => {
 /** 取消授权按钮操作 */
 const cancelAuthUser = async (row: UserVO) => {
   await proxy?.$modal.confirm('确认要取消该用户"' + row.userName + '"角色吗？');
-  await authUserCancel({ userId: row.userId, roleId: queryParams.roleId });
+  await authUserCancel({ userIds: [row.userId], roleId: queryParams.roleId });
   await getList();
   proxy?.$modal.msgSuccess('取消授权成功');
 };
 /** 批量取消授权按钮操作 */
 const cancelAuthUserAll = async () => {
   const roleId = queryParams.roleId;
-  const uIds = userIds.value.join(',');
+  // const uIds = userIds.value.join(',');
   await proxy?.$modal.confirm('是否取消选中用户授权数据项?');
-  await authUserCancelAll({ roleId: roleId, userIds: uIds });
+  await authUserCancel({ roleId: roleId, userIds: userIds.value });
   await getList();
   proxy?.$modal.msgSuccess('取消授权成功');
 };
