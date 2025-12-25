@@ -279,8 +279,8 @@ export class MenuService {
   private buildMenuTree(menus: Menu[], parentId: number = 0): Menu[] {
     return menus
       .filter(menu => {
-        const menuParentId = menu.parentId === null ? 0 : menu.parentId;
-        const currentParentId = parentId === null ? 0 : parentId;
+        const menuParentId = +menu.parentId === null ? 0 : +menu.parentId;
+        const currentParentId = +parentId === null ? 0 : +parentId;
         return menuParentId === currentParentId;
       })
       .map(menu => ({
