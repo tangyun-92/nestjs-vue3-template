@@ -132,9 +132,10 @@ service.interceptors.response.use(
         ElMessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
           confirmButtonText: '重新登录',
           cancelButtonText: '取消',
-          type: 'warning'
+          type: 'warning',
+          closeOnClickModal: false,
+          closeOnPressEscape: false
         }).then(() => {
-          isRelogin.show = false;
           useUserStore().logout().then(() => {
             router.replace({
               path: '/login',
@@ -144,6 +145,8 @@ service.interceptors.response.use(
             })
           });
         }).catch(() => {
+          // 用户点击取消
+        }).finally(() => {
           isRelogin.show = false;
         });
       }
@@ -163,12 +166,39 @@ service.interceptors.response.use(
   },
   (error: any) => {
     let { message, response } = error;
-    console.error('123', error, message)
+    console.error('123', error, message, response);
+    // 处理 HTTP 401 状态码
+    if (response?.status === 401 || response?.data?.code === 401) {
+      if (!isRelogin.show) {
+        isRelogin.show = true;
+        ElMessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
+          confirmButtonText: '重新登录',
+          cancelButtonText: '取消',
+          type: 'warning',
+          closeOnClickModal: false,
+          closeOnPressEscape: false
+        }).then(() => {
+          useUserStore().logout().then(() => {
+            router.replace({
+              path: '/login',
+              query: {
+                redirect: encodeURIComponent(router.currentRoute.value.fullPath || '/')
+              }
+            })
+          });
+        }).catch(() => {
+          // 用户点击取消
+        }).finally(() => {
+          isRelogin.show = false;
+        });
+      }
+      return Promise.reject('无效的会话，或者会话已过期，请重新登录。');
+    }
     if (message == 'Network Error') {
       message = '后端接口连接异常';
     } else if (message.includes('timeout')) {
       message = '系统接口请求超时';
-    } else if (message.includes('Request failed with status code')) {
+    } else if (message.includes('Request failed with status code') && response?.data?.message) {
       message = response.data.message;
     }
     //  else if (message.includes('Request failed with status code')) {
