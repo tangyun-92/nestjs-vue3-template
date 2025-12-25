@@ -33,8 +33,8 @@ export class DeptService {
   private buildDeptTree(depts: DeptDataDto[], parentId: number = 0): DeptDataDto[] {
     return depts
       .filter(dept => {
-        const deptParentId = dept.parentId === null ? 0 : dept.parentId;
-        const currentParentId = parentId === null ? 0 : parentId;
+        const deptParentId = +dept.parentId === null ? 0 : +dept.parentId;
+        const currentParentId = +parentId === null ? 0 : +parentId;
         return deptParentId === currentParentId;
       })
       .map(dept => ({
