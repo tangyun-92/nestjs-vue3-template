@@ -63,7 +63,7 @@ export function delPost(postId: string | number | (string | number)[]) {
  */
 export const deptTreeSelect = (): AxiosPromise<DeptTreeVO[]> => {
   return request({
-    url: '/system/post/deptTree',
+    url: '/system/dept/deptTree',
     method: 'get'
   });
 };

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Not, In } from 'typeorm';
 import { Post } from '../../entities/post.entity';
@@ -12,6 +12,7 @@ import {
   PostDeptTreeDto,
   PostStatus
 } from './dto/post.dto';
+import { DeptService } from '../dept/dept.service';
 
 @Injectable()
 export class PostService {
@@ -20,6 +21,8 @@ export class PostService {
     private postRepository: Repository<Post>,
     @InjectRepository(Dept)
     private deptRepository: Repository<Dept>,
+    @Inject(forwardRef(() => DeptService))
+    private deptService: DeptService,
   ) {}
 
   /**
@@ -32,6 +35,7 @@ export class PostService {
       pageNum = 1,
       pageSize = 10,
       deptId,
+      belongDeptId,
       postCode,
       postName,
       postCategory,
@@ -40,7 +44,12 @@ export class PostService {
 
     const where: any = {};
 
-    if (deptId) {
+    // 如果传入了 belongDeptId，则查询该部门及其所有子部门下的岗位
+    if (belongDeptId) {
+      const childDepts = await this.deptService.findChildDepts(belongDeptId);
+      const allDeptIds = [belongDeptId, ...childDepts.map(d => d.deptId)];
+      where.deptId = In(allDeptIds);
+    } else if (deptId) {
       where.deptId = deptId;
     }
 
