@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Not, In } from 'typeorm';
 import { Post } from '../../entities/post.entity';
 import { Dept } from '../../entities/dept.entity';
+import { UserPost } from '../../entities/user-post.entity';
 import {
   QueryPostDto,
   CreatePostDto,
@@ -21,6 +22,8 @@ export class PostService {
     private postRepository: Repository<Post>,
     @InjectRepository(Dept)
     private deptRepository: Repository<Dept>,
+    @InjectRepository(UserPost)
+    private userPostRepository: Repository<UserPost>,
     @Inject(forwardRef(() => DeptService))
     private deptService: DeptService,
   ) {}
@@ -263,6 +266,14 @@ export class PostService {
       }
     }
 
+    // 先删除用户岗位关联表中的记录
+    await this.userPostRepository
+      .createQueryBuilder()
+      .delete()
+      .where('postId IN (:...postIds)', { postIds })
+      .execute();
+
+    // 再删除岗位
     await this.postRepository.delete(postIds);
   }
 
