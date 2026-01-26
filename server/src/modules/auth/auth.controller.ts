@@ -30,10 +30,11 @@ export class AuthController {
     return result;
   }
 
+  @Public()
   @Post('logout')
   async logout(@Request() req) {
-    // 获取用户信息
-    const userName = req.user?.userName || '未知用户';
+    // 获取用户信息（token有效时会有user，token过期时为空）
+    const userName = req.user?.userName || '已过期用户';
 
     // 记录退出日志
     await this.authService.recordLogoutLog(userName, req);
