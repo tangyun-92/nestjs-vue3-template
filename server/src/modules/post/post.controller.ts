@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { PostService } from './post.service';
 import type { QueryPostDto, CreatePostDto, UpdatePostDto } from './dto/post.dto';
 import { ResponseWrapper } from '../../common/response.wrapper';
@@ -95,5 +96,28 @@ export class PostController {
     const ids = postId.split(',').map(id => +id);
     await this.postService.delete(ids);
     return ResponseWrapper.success(null, '删除成功');
+  }
+
+  /**
+   * 导出岗位
+   * @param query 查询参数
+   */
+  @Post('export')
+  async export(
+    @Body() query: QueryPostDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const buffer = await this.postService.exportPosts(query);
+
+    // 设置响应头
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=posts_${timestamp}.xlsx`,
+      'Content-Length': buffer.length.toString(),
+    });
+
+    res.send(buffer);
   }
 }

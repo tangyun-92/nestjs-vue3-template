@@ -4,6 +4,7 @@ import { Repository, Like, Not, In } from 'typeorm';
 import { Post } from '../../entities/post.entity';
 import { Dept } from '../../entities/dept.entity';
 import { UserPost } from '../../entities/user-post.entity';
+import { ExcelColumn, exportToExcel } from 'src/utils/excel';
 import {
   QueryPostDto,
   CreatePostDto,
@@ -334,5 +335,49 @@ export class PostService {
     };
 
     return buildTree();
+  }
+
+  /**
+   * 导出岗位数据 Excel
+   * @param query 查询参数
+   * @returns Excel buffer
+   */
+  async exportPosts(queryPostDto: QueryPostDto) {
+    const { posts } = await this.findAll({
+      ...queryPostDto,
+    });
+
+    // 定义列
+    const columns: ExcelColumn[] = [
+      { header: '岗位ID', key: 'postId', width: 10 },
+      { header: '岗位编码', key: 'postCode', width: 20 },
+      { header: '岗位名称', key: 'postName', width: 20 },
+      { header: '类别编码', key: 'postCategory', width: 15 },
+      { header: '显示顺序', key: 'postSort', width: 10 },
+      { header: '状态', key: 'status', width: 10 },
+      { header: '所属部门', key: 'deptName', width: 20 },
+      { header: '创建时间', key: 'createTime', width: 20 },
+      { header: '备注', key: 'remark', width: 30 },
+    ];
+
+    const data = posts.map((post) => ({
+      postId: post.postId,
+      postCode: post.postCode,
+      postName: post.postName,
+      postCategory: post.postCategory || '',
+      postSort: post.postSort,
+      status: post.status === '0' ? '正常' : '停用',
+      deptName: post.deptName || '',
+      createTime: post.createTime || '',
+      remark: post.remark || '',
+    }));
+
+    // 按照postId排序
+    data.sort((a, b) => a.postId - b.postId);
+
+    // 使用 Excel 工具函数导出
+    return exportToExcel(columns, data, {
+      sheetName: '岗位列表',
+    });
   }
 }
