@@ -123,6 +123,7 @@ export class PostService {
 
     return {
       ...post,
+      deptId: +post.deptId,
       createTime: post.createTime?.toISOString(),
       updateTime: post.updateTime?.toISOString(),
       deptName: dept?.deptName || '',
@@ -212,7 +213,19 @@ export class PostService {
       }
     }
 
-    await this.postRepository.update(updatePostDto.postId, updatePostDto);
+    // 只提取实体中存在的字段进行更新，排除 deptName 等关联字段
+    const { postId, deptId, postCode, postName, postCategory, postSort, status, remark } = updatePostDto;
+    const updateData: Partial<UpdatePostDto> = {};
+
+    if (deptId !== undefined) updateData.deptId = deptId;
+    if (postCode !== undefined) updateData.postCode = postCode;
+    if (postName !== undefined) updateData.postName = postName;
+    if (postCategory !== undefined) updateData.postCategory = postCategory;
+    if (postSort !== undefined) updateData.postSort = postSort;
+    if (status !== undefined) updateData.status = status;
+    if (remark !== undefined) updateData.remark = remark;
+
+    await this.postRepository.update(updatePostDto.postId, updateData);
 
     const updatedPost = await this.postRepository.findOne({
       where: { postId: updatePostDto.postId }
