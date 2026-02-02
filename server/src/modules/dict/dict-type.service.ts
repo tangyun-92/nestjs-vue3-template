@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Not } from 'typeorm';
+import { Repository, Like, Not, Between } from 'typeorm';
 import { DictType } from '../../entities/dict-type.entity';
 
 @Injectable()
@@ -31,6 +31,19 @@ export class DictTypeService {
 
     if (dictType) {
       where.dictType = Like(`%${dictType}%`);
+    }
+
+    // 处理时间范围查询
+    const beginTime = query['params[beginTime]'];
+    const endTime = query['params[endTime]'];
+
+    // 添加创建时间范围查询
+    if (beginTime) {
+      where.createTime = Between(beginTime, endTime);
+    }
+
+    if (endTime) {
+      where.createTime = Between(beginTime, endTime);
     }
 
     const [dictTypes, total] = await this.dictTypeRepository.findAndCount({
