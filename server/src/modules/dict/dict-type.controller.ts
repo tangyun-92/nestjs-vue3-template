@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, Req, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { DictTypeService } from './dict-type.service';
 import { DictDataService } from './dict-data.service';
 import { ResponseWrapper } from '../../common/response.wrapper';
@@ -19,7 +20,8 @@ export class DictTypeController {
    */
   @Get('list')
   async list(@Query() query: any) {
-    const { dictTypes, total, pageNum, pageSize } = await this.dictTypeService.findAll(query);
+    const { dictTypes, total, pageNum, pageSize } =
+      await this.dictTypeService.findAll(query);
     return ResponseWrapper.successWithPagination(
       dictTypes,
       total,
@@ -27,6 +29,26 @@ export class DictTypeController {
       pageSize,
       '查询成功',
     );
+  }
+
+  /**
+   * 获取字典选择框列表
+   * @returns 字典类型列表
+   */
+  @Get('optionselect')
+  async optionselect() {
+    const dictTypes = await this.dictTypeService.findOptionSelect();
+    return ResponseWrapper.success(dictTypes, '查询成功');
+  }
+
+  /**
+   * 刷新字典缓存
+   * @returns 刷新结果
+   */
+  @Delete('refreshCache')
+  async refreshCache() {
+    const result = await this.dictTypeService.refreshCache();
+    return ResponseWrapper.success(result, '刷新成功');
   }
 
   /**
@@ -69,28 +91,28 @@ export class DictTypeController {
    */
   @Delete(':dictId')
   async delType(@Param('dictId') dictId: string) {
-    const ids = dictId.split(',').map(id => +id);
+    const ids = dictId.split(',').map((id) => +id);
     await this.dictTypeService.delete(ids);
     return ResponseWrapper.success(null, '删除成功');
   }
 
   /**
-   * 刷新字典缓存
-   * @returns 刷新结果
+   * 导出字典类型
+   * @param query 查询参数
    */
-  @Delete('refreshCache')
-  async refreshCache() {
-    const result = await this.dictTypeService.refreshCache();
-    return ResponseWrapper.success(result, '刷新成功');
-  }
+  @Post('export')
+  async export(@Body() query: any, @Res({ passthrough: true }) res: Response) {
+    const buffer = await this.dictTypeService.exportDictTypes(query);
 
-  /**
-   * 获取字典选择框列表
-   * @returns 字典类型列表
-   */
-  @Get('optionselect')
-  async optionselect() {
-    const dictTypes = await this.dictTypeService.findOptionSelect();
-    return ResponseWrapper.success(dictTypes, '查询成功');
+    // 设置响应头
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=dict_types_${timestamp}.xlsx`,
+      'Content-Length': buffer.length.toString(),
+    });
+
+    res.send(buffer);
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Not, Between } from 'typeorm';
 import { DictType } from '../../entities/dict-type.entity';
+import { ExcelColumn, exportToExcel } from 'src/utils/excel';
 
 @Injectable()
 export class DictTypeService {
@@ -205,5 +206,41 @@ export class DictTypeService {
   async refreshCache() {
     // TODO: 实现缓存刷新逻辑
     return { success: true, message: '刷新成功' };
+  }
+
+  /**
+   * 导出字典类型数据 Excel
+   * @param query 查询参数
+   * @returns Excel buffer
+   */
+  async exportDictTypes(query: any) {
+    const { dictTypes } = await this.findAll({
+      ...query,
+    });
+
+    // 定义列
+    const columns: ExcelColumn[] = [
+      { header: '字典ID', key: 'dictId', width: 10 },
+      { header: '字典名称', key: 'dictName', width: 20 },
+      { header: '字典类型', key: 'dictType', width: 20 },
+      { header: '创建时间', key: 'createTime', width: 20 },
+      { header: '备注', key: 'remark', width: 30 },
+    ];
+
+    const data = dictTypes.map((dictType) => ({
+      dictId: dictType.dictId,
+      dictName: dictType.dictName,
+      dictType: dictType.dictType,
+      createTime: dictType.createTime || '',
+      remark: dictType.remark || '',
+    }));
+
+    // 按照dictId排序
+    data.sort((a, b) => a.dictId - b.dictId);
+
+    // 使用 Excel 工具函数导出
+    return exportToExcel(columns, data, {
+      sheetName: '字典类型列表',
+    });
   }
 }
