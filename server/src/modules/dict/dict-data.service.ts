@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { DictData } from '../../entities/dict-data.entity';
 import { DictType } from '../../entities/dict-type.entity';
+import { ExcelColumn, exportToExcel } from 'src/utils/excel';
 
 @Injectable()
 export class DictDataService {
@@ -212,5 +213,51 @@ export class DictDataService {
     }
 
     await this.dictDataRepository.delete(dictCodes);
+  }
+
+  /**
+   * 导出字典数据 Excel
+   * @param query 查询参数
+   * @returns Excel buffer
+   */
+  async exportDictData(query: any) {
+    const { dictDataList } = await this.findAll({
+      ...query,
+    });
+
+    // 定义列
+    const columns: ExcelColumn[] = [
+      { header: '字典编码', key: 'dictCode', width: 10 },
+      { header: '字典标签', key: 'dictLabel', width: 20 },
+      { header: '字典键值', key: 'dictValue', width: 15 },
+      { header: '字典类型', key: 'dictType', width: 20 },
+      { header: '字典排序', key: 'dictSort', width: 10 },
+      { header: '是否默认', key: 'isDefault', width: 10 },
+      { header: '样式属性', key: 'cssClass', width: 15 },
+      { header: '表格样式', key: 'listClass', width: 15 },
+      { header: '创建时间', key: 'createTime', width: 20 },
+      { header: '备注', key: 'remark', width: 30 },
+    ];
+
+    const data = dictDataList.map((dictData) => ({
+      dictCode: dictData.dictCode,
+      dictLabel: dictData.dictLabel,
+      dictValue: dictData.dictValue,
+      dictType: dictData.dictType,
+      dictSort: dictData.dictSort,
+      isDefault: dictData.isDefault === 'Y' ? '是' : '否',
+      cssClass: dictData.cssClass || '',
+      listClass: dictData.listClass || '',
+      createTime: dictData.createTime || '',
+      remark: dictData.remark || '',
+    }));
+
+    // 按照dictCode排序
+    data.sort((a, b) => a.dictCode - b.dictCode);
+
+    // 使用 Excel 工具函数导出
+    return exportToExcel(columns, data, {
+      sheetName: '字典数据列表',
+    });
   }
 }

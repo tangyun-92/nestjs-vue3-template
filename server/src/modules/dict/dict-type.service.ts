@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Not, Between } from 'typeorm';
 import { DictType } from '../../entities/dict-type.entity';
+import { DictData } from '../../entities/dict-data.entity';
 import { ExcelColumn, exportToExcel } from 'src/utils/excel';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class DictTypeService {
   constructor(
     @InjectRepository(DictType)
     private dictTypeRepository: Repository<DictType>,
+    @InjectRepository(DictData)
+    private dictDataRepository: Repository<DictData>,
   ) {}
 
   /**
@@ -178,6 +181,17 @@ export class DictTypeService {
 
       if (!dictType) {
         throw new UnauthorizedException('字典类型不存在');
+      }
+
+      // 检查该字典类型下是否存在字典数据
+      const dictDataCount = await this.dictDataRepository.count({
+        where: { dictType: dictType.dictType }
+      });
+
+      if (dictDataCount > 0) {
+        throw new UnauthorizedException(
+          `字典类型【${dictType.dictName}】下存在 ${dictDataCount} 条字典数据，请先删除字典数据`
+        );
       }
     }
 

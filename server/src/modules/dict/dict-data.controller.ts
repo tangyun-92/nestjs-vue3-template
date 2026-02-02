@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { DictDataService } from './dict-data.service';
 import { ResponseWrapper } from '../../common/response.wrapper';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -68,5 +69,28 @@ export class DictDataController {
     const codes = dictCode.split(',').map(code => +code);
     await this.dictDataService.delete(codes);
     return ResponseWrapper.success(null, '删除成功');
+  }
+
+  /**
+   * 导出字典数据
+   * @param query 查询参数
+   */
+  @Post('export')
+  async export(
+    @Body() query: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const buffer = await this.dictDataService.exportDictData(query);
+
+    // 设置响应头
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=dict_data_${timestamp}.xlsx`,
+      'Content-Length': buffer.length.toString(),
+    });
+
+    res.send(buffer);
   }
 }
