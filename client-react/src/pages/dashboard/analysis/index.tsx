@@ -14,7 +14,6 @@ import type { TimeType } from './components/SalesCard';
 import SalesCard from './components/SalesCard';
 import TopSearch from './components/TopSearch';
 import type { AnalysisData } from './data.d';
-import { fakeChartData } from './service';
 import useStyles from './style.style';
 import { getTimeDistance } from './utils/utils';
 
@@ -31,7 +30,7 @@ const Analysis: FC<AnalysisProps> = () => {
   const [rangePickerValue, setRangePickerValue] = useState<RangePickerValue>(
     getTimeDistance('year'),
   );
-  const { loading, data } = useRequest(fakeChartData);
+  const { loading, data } = { loading: false, data: undefined }; // useRequest(fakeChartData);
   const selectDate = (type: TimeType) => {
     setRangePickerValue(getTimeDistance(type));
   };

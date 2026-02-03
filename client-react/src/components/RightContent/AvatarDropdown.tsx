@@ -5,11 +5,12 @@ import {
 } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
-import { Spin } from 'antd';
+import { Spin, message } from 'antd';
 import { createStyles } from 'antd-style';
 import React from 'react';
 import { flushSync } from 'react-dom';
-import { outLogin } from '@/services/ant-design-pro/api';
+import { logout } from '@/services/auth';
+import { clearToken } from '@/requestErrorConfig';
 import HeaderDropdown from '../HeaderDropdown';
 
 export type GlobalHeaderRightProps = {
@@ -20,7 +21,7 @@ export type GlobalHeaderRightProps = {
 export const AvatarName = () => {
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
-  return <span className="anticon">{currentUser?.name}</span>;
+  return <span className="anticon">{currentUser?.name || currentUser?.userName || currentUser?.nickName}</span>;
 };
 
 const useStyles = createStyles(({ token }) => {
@@ -49,7 +50,25 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
    * 退出登录，并且将当前的 url 保存
    */
   const loginOut = async () => {
-    await outLogin();
+    try {
+      // 调用退出登录接口
+      await logout();
+      // 清除本地存储的 token
+      clearToken();
+      // 清除用户信息
+      flushSync(() => {
+        setInitialState((s) => ({ ...s, currentUser: undefined, menus: undefined }));
+      });
+      message.success('退出登录成功');
+    } catch (error) {
+      // 即使接口调用失败，也清除本地数据并跳转
+      clearToken();
+      flushSync(() => {
+        setInitialState((s) => ({ ...s, currentUser: undefined, menus: undefined }));
+      });
+    }
+    
+    // 跳转到登录页
     const { search, pathname } = window.location;
     const urlParams = new URL(window.location.href).searchParams;
     const searchParams = new URLSearchParams({
@@ -72,9 +91,6 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
   const onMenuClick: MenuProps['onClick'] = (event) => {
     const { key } = event;
     if (key === 'logout') {
-      flushSync(() => {
-        setInitialState((s) => ({ ...s, currentUser: undefined }));
-      });
       loginOut();
       return;
     }
@@ -99,7 +115,7 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
 
   const { currentUser } = initialState;
 
-  if (!currentUser || !currentUser.name) {
+  if (!currentUser || (!currentUser.name && !currentUser.userName)) {
     return loading;
   }
 

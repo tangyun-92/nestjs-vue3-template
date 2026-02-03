@@ -59,8 +59,8 @@ export class User {
   })
   sex: UserSex;
 
-  @Column({ type: 'bigint', width: 20, nullable: true, comment: '头像地址' })
-  avatar: number;
+  @Column({ type: 'varchar', length: 255, nullable: true, comment: '头像地址' })
+  avatar: string;
 
   @Column({ type: 'varchar', length: 100, default: '', comment: '密码' })
   password: string;
@@ -106,10 +106,10 @@ export class User {
   remark: string;
 
   // 关联用户角色
-  @OneToMany(() => UserRole, userRole => userRole.user)
+  @OneToMany(() => UserRole, (userRole) => userRole.user)
   userRoles: UserRole[];
 
   // 关联用户岗位
-  @OneToMany(() => UserPost, userPost => userPost.user)
+  @OneToMany(() => UserPost, (userPost) => userPost.user)
   userPosts: UserPost[];
 }

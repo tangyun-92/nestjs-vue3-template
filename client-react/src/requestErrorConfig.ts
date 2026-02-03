@@ -57,6 +57,11 @@ export const errorConfig: RequestConfig = {
   errorConfig: {
     // 错误抛出
     errorThrower: (res) => {
+      // 如果响应是数组，直接通过 (兼容 getRouters 接口)
+      if (Array.isArray(res)) {
+        return;
+      }
+
       const { code, result, data, message: errorMessage, showType } =
         res as unknown as ResponseStructure;
 

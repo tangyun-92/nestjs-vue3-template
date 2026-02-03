@@ -18,6 +18,7 @@ import {
   SelectLang,
   useIntl,
   useModel,
+  history,
 } from '@umijs/max';
 import { Alert, App, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
@@ -25,6 +26,7 @@ import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Footer } from '@/components';
 import { login, getUserInfo } from '@/services/auth';
+import { getRouters } from '@/services/menu';
 import Settings from '../../../../config/defaultSettings';
 import { setToken } from '@/requestErrorConfig';
 
@@ -125,6 +127,7 @@ const Login: React.FC = () => {
         const { user, roles, permissions } = response.data;
         const userInfo: API.CurrentUser = {
           userId: user.userId,
+          name: user.nickName || user.userName, // 增加 name 字段映射
           userName: user.userName,
           nickName: user.nickName,
           avatar: user.avatar,
@@ -162,13 +165,29 @@ const Login: React.FC = () => {
         });
         message.success(defaultLoginSuccessMessage);
 
-        // Token 已在响应拦截器中自动保存
+        // 显式保存 Token，确保 Token 被正确写入
+        if (response.data.access_token) {
+          setToken(response.data.access_token);
+        }
+
         // 获取用户信息
-        await fetchUserInfo();
+        const userInfo = await fetchUserInfo();
+
+        // 如果用户信息获取成功，更新 initialState
+        // 注意：不在这里获取菜单，让 ProLayout 的 menu.request 来获取
+        if (userInfo) {
+          flushSync(() => {
+            setInitialState((s) => ({
+              ...s,
+              currentUser: userInfo,
+              menus: undefined, // 清除旧的菜单数据，强制重新请求
+            }));
+          });
+        }
 
         // 跳转到首页或重定向页面
         const urlParams = new URL(window.location.href).searchParams;
-        window.location.href = urlParams.get('redirect') || '/';
+        history.push(urlParams.get('redirect') || '/');
         return;
       } else {
         // 登录失败
