@@ -214,6 +214,8 @@ const Login: React.FC = () => {
           })}
           initialValues={{
             autoLogin: true,
+            username: 'admin',
+            password: 'admin123',
           }}
           actions={[
             <FormattedMessage
@@ -327,7 +329,7 @@ const Login: React.FC = () => {
                   },
                 ]}
               />
-              <ProFormCaptcha
+              {/* <ProFormCaptcha
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined />,
@@ -372,7 +374,7 @@ const Login: React.FC = () => {
                   }
                   message.success('获取验证码成功！验证码为：1234');
                 }}
-              />
+              /> */}
             </>
           )}
           <div

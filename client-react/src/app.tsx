@@ -11,7 +11,7 @@ import {
   Question,
   SelectLang,
 } from '@/components';
-import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
+import { getUserInfo } from '@/services/auth';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import '@ant-design/v5-patch-for-react-19';
@@ -31,10 +31,25 @@ export async function getInitialState(): Promise<{
 }> {
   const fetchUserInfo = async () => {
     try {
-      const msg = await queryCurrentUser({
+      const response = await getUserInfo({
         skipErrorHandler: true,
       });
-      return msg.data;
+      if (response.result && response.data) {
+        const { user, roles, permissions } = response.data;
+        const userInfo: API.CurrentUser = {
+          userId: user.userId,
+          userName: user.userName,
+          nickName: user.nickName,
+          avatar: user.avatar,
+          email: user.email,
+          phonenumber: user.phonenumber,
+          sex: user.sex,
+          status: user.status,
+          roles,
+          permissions,
+        };
+        return userInfo;
+      }
     } catch (_error) {
       history.push(loginPath);
     }
